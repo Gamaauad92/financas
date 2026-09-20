@@ -208,7 +208,9 @@
   .folha .linha2{display:flex;gap:10px}
   .folha .linha2 > *{flex:1}
   .interr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px}
-  .interr input{width:22px;height:22px;accent-color:var(--accent)}
+  .interr input{width:22px;height:22px;accent-color:var(--accent);flex:none}
+  .interr span{font-size:.95rem}
+  .interr small{display:block;color:var(--ink-3);font-size:.76rem;margin-top:2px}
   .acoes{display:flex;gap:10px;margin-top:20px}
   .btn{flex:1;padding:14px;border-radius:13px;font-weight:650;font-size:.97rem;text-align:center;border:1px solid var(--line);background:var(--surface-2)}
   .btn.pri{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
@@ -1705,6 +1707,10 @@ function folhaLancamento(ref){
     "</div>" +
     '<div class="dica" id="f-rep-dica"></div>' +
     '<label class="interr"><span id="f-efet-rot">Já pago</span><input type="checkbox" id="f-efet"' + (l && l.efetivado ? " checked" : "") + "></label>" +
+    '<label class="interr"><span>Pagamento agendado<small>já agendado no banco · vale só para este mês</small></span>' +
+      '<input type="checkbox" id="f-agendado"' + (l && l.agendado ? " checked" : "") + "></label>" +
+    '<label class="interr"><span>Débito automático<small>vale para todos os meses desta rubrica</small></span>' +
+      '<input type="checkbox" id="f-debito"' + (l && l.debito ? " checked" : "") + "></label>" +
     '<div class="erro" id="f-erro"></div>' +
     '<div class="acoes">' + (l ? '<button class="btn perigo" id="f-del">Excluir</button>' : "") +
       '<button class="btn" id="f-cancelar">Cancelar</button><button class="btn pri" id="f-ok">Salvar</button></div>',
@@ -1740,22 +1746,24 @@ function folhaLancamento(ref){
         }
         const desc = $("f-desc").value.trim();
         const efet = $("f-efet").checked;
+        const agendado = $("f-agendado").checked, debito = $("f-debito").checked;
         if(!l){
           const [yy, mm2] = $("f-mes").value.split("-").map(Number);
           const novo = {id:uid(), secao:lerSecao(), desc:desc, tipo:tipo, valor:valor, raw:txt, efetivado:false,
-                        serieId:null, tipoRec:"variavel", parcela:null, parcelas:null, agendado:false, debito:false, nota:""};
+                        serieId:null, tipoRec:"variavel", parcela:null, parcelas:null, agendado:false, debito:debito, nota:""};
           getMes(yy, mm2, true).lancamentos.push(novo);
           const anoAntes = ano; ano = yy;          // criarSerie usa o ano visível para estender as fixas
           if(r === "fixa") criarSerie(novo, yy, mm2, "fixa");
           else if(r === "parcelada") criarSerie(novo, yy, mm2, "parcelada", n);
           ano = anoAntes;
-          novo.efetivado = efet;                   // só a ocorrência deste mês
+          // o débito automático vale para a rubrica toda; o agendamento, só para este mês
+          novo.efetivado = efet; novo.agendado = agendado;
           salvar(); fecharFolha();
           ano = yy; mesVis = mm2; desenhar();
           toast("Lançamento incluído em " + MESES[mm2] + ".");
           return;
         }
-        editarLanc(ref, {desc:desc, tipo:tipo, valor:valor, raw:txt, rep:r, n:n, efet:efet});
+        editarLanc(ref, {desc:desc, tipo:tipo, valor:valor, raw:txt, rep:r, n:n, efet:efet, agendado:agendado, debito:debito});
       });
     });
 }
@@ -1766,6 +1774,14 @@ function editarLanc(ref, d){
   const terminar = ()=>{ salvar(); fecharFolha(); desenhar(); toast("Alteração salva."); };
 
   l.efetivado = d.efet;
+  l.agendado = d.agendado;
+  if(!!l.debito !== d.debito){                 // débito automático: vale para a rubrica inteira
+    l.debito = d.debito;
+    if(l.serieId && state.series[l.serieId]){
+      state.series[l.serieId].debito = d.debito;
+      ocorrencias(l.serieId).forEach(o=>{ o.l.debito = d.debito; });
+    }
+  }
   // descrição: vale para a rubrica inteira, como no computador
   if((l.desc || "") !== d.desc){
     l.desc = d.desc;
@@ -1835,6 +1851,10 @@ function folhaFatura(y, m){
       esc(fechada ? (mm.fatura.raw || String(mm.fatura.real)).replace(".", ",") : "") + '">' +
     '<div class="dica">Depois que a fatura fechar, informe o valor real. Deixe vazio para usar o orçamento.</div>' +
     '<label class="interr"><span>Já paga</span><input type="checkbox" id="ff-efet"' + (mm.fatura.efetivado ? " checked" : "") + "></label>" +
+    '<label class="interr"><span>Pagamento agendado<small>vale só para este mês</small></span>' +
+      '<input type="checkbox" id="ff-agendado"' + (mm.fatura.agendado ? " checked" : "") + "></label>" +
+    '<label class="interr"><span>Débito automático<small>vale para todos os meses</small></span>' +
+      '<input type="checkbox" id="ff-debito"' + (state.cartao.debito ? " checked" : "") + "></label>" +
     '<div class="erro" id="ff-erro"></div>' +
     '<div class="acoes"><button class="btn" id="ff-c">Cancelar</button><button class="btn pri" id="ff-ok">Salvar</button></div>', f=>{
       $("ff-c").addEventListener("click", fecharFolha);
@@ -1846,6 +1866,8 @@ function folhaFatura(y, m){
           mm.fatura.real = Math.abs(v); mm.fatura.raw = txt;
         } else { mm.fatura.real = null; mm.fatura.raw = ""; }
         mm.fatura.efetivado = $("ff-efet").checked;
+        mm.fatura.agendado = $("ff-agendado").checked;
+        state.cartao.debito = $("ff-debito").checked;
         salvar(); fecharFolha(); desenhar();
       });
     });
