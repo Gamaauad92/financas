@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6f5e">
+<meta name="color-scheme" content="light dark">
+<title>Finanças</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
+<style>
+  :root{
+    --bg:#f6f6f3; --surface:#ffffff; --surface-2:#fbfbf9;
+    --line:#e6e5df; --line-strong:#d6d5cc;
+    --ink:#1d1d1a; --ink-2:#5f5f58; --ink-3:#8c8c83;
+    --accent:#2f6f5e; --accent-soft:#e8f1ee; --on-accent:#ffffff;
+    --pos:#1f7a52; --neg:#b0402f;
+    --warn:#8a6412; --warn-soft:#f7efdc;
+    --info:#2b5f86; --info-soft:#e4eef6;
+    --hero-ink:#2a5c50; --hero-val:#1f4d42;
+    --field:#ffffff; --del-bg:#f2e5e2;
+    --shadow:0 1px 2px rgba(28,28,26,.04), 0 8px 24px rgba(28,28,26,.06);
+    --radius:16px;
+    --tabbar:64px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0d1110; --surface:#151a19; --surface-2:#1a201f;
+      --line:#252d2b; --line-strong:#3a4441;
+      --ink:#e9ece9; --ink-2:#a4ada9; --ink-3:#78827e;
+      --accent:#5fbfa2; --accent-soft:#16302a; --on-accent:#0d1110;
+      --pos:#5ecfa0; --neg:#e8836c;
+      --warn:#d8b872; --warn-soft:#2e2718;
+      --info:#83bbe4; --info-soft:#16242e;
+      --hero-ink:#8fd9c0; --hero-val:#a7e6d0;
+      --field:#101514; --del-bg:#3a201c;
+      --shadow:0 1px 2px rgba(0,0,0,.28), 0 10px 28px rgba(0,0,0,.34);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:"Inter","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;line-height:1.4;font-size:15px;
+    min-height:100vh;overscroll-behavior-y:contain;
+  }
+  button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+  input,select{font:inherit;color:inherit}
+  .hidden{display:none!important}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ---------- barra superior ---------- */
+  .topo{
+    position:sticky;top:0;z-index:20;background:var(--bg);
+    padding:calc(env(safe-area-inset-top) + 10px) 16px 8px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .topo h1{font-size:1.15rem;margin:0;font-weight:650;letter-spacing:-.01em;flex:1}
+  .sync{
+    display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-2);
+    background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 10px;
+  }
+  .sync i{width:8px;height:8px;border-radius:50%;background:var(--ink-3);display:inline-block}
+  .sync.ok i{background:var(--pos)}
+  .sync.pend i{background:var(--warn)}
+  .sync.erro i{background:var(--neg)}
+  .sync.gira i{animation:pisca 1s infinite}
+  @keyframes pisca{50%{opacity:.25}}
+
+  main{padding:0 16px calc(var(--tabbar) + env(safe-area-inset-bottom) + 90px)}
+  .navmes{display:flex;align-items:center;justify-content:space-between;margin:4px 0 12px}
+  .navmes button.seta{width:44px;height:44px;border-radius:12px;font-size:1.4rem;color:var(--ink-2)}
+  .navmes button.seta:active{background:var(--surface)}
+  .navmes .nome{font-size:1.05rem;font-weight:600;text-align:center}
+  .navmes .nome small{display:block;font-size:.75rem;color:var(--ink-3);font-weight:500}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+  .card > header{display:flex;align-items:baseline;gap:8px;padding:13px 14px 8px}
+  .card > header h3{margin:0;font-size:.95rem;font-weight:650;flex:1}
+  .card > header .sub{font-size:.8rem;color:var(--ink-3)}
+  .explica{font-size:.8rem;color:var(--ink-3);padding:0 14px 8px}
+
+  /* ---------- resumo ---------- */
+  .hero{padding:16px 16px 12px;background:var(--accent-soft)}
+  .hero .rot{font-size:.8rem;color:var(--hero-ink);font-weight:600}
+  .hero .val{font-size:1.9rem;font-weight:700;color:var(--hero-val);letter-spacing:-.02em;margin-top:2px}
+  .hero .dica{font-size:.78rem;color:var(--hero-ink);opacity:.85;margin-top:2px}
+  .kv{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 14px;border-top:1px solid var(--line);font-size:.9rem}
+  .kv span{color:var(--ink-2)}
+  .kv b{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .kv.total b{font-weight:700}
+  .p{color:var(--pos)} .n{color:var(--neg)}
+
+  /* ---------- lançamentos ---------- */
+  .filtro{display:flex;gap:6px;margin:2px 0 12px}
+  .filtro button{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:.83rem;color:var(--ink-2)}
+  .filtro button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  .lin{display:flex;align-items:center;gap:4px;border-top:1px solid var(--line);min-height:58px}
+  .lin .chk{width:52px;height:58px;display:flex;align-items:center;justify-content:center;flex:none}
+  .lin .chk span{
+    width:24px;height:24px;border-radius:50%;border:2px solid var(--line-strong);
+    display:flex;align-items:center;justify-content:center;transition:all .15s;
+  }
+  .lin .chk.on span{background:var(--accent);border-color:var(--accent)}
+  .lin .chk.on span::after{content:"";width:6px;height:11px;border:solid var(--on-accent);border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+  .lin .corpo{flex:1;min-width:0;display:flex;align-items:center;gap:8px;padding:8px 14px 8px 0;text-align:left;min-height:58px}
+  .lin .txt{flex:1;min-width:0}
+  .lin .desc{font-size:.93rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lin.feito .desc{color:var(--ink-3)}
+  .lin .tags{display:flex;gap:5px;margin-top:3px;flex-wrap:wrap}
+  .tag{font-size:.68rem;padding:1px 7px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2);line-height:1.5}
+  .tag.fixa{background:var(--info-soft);border-color:transparent;color:var(--info)}
+  .tag.parc{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+  .tag.orc{background:var(--accent-soft);border-color:transparent;color:var(--hero-ink)}
+  .lin .val{font-size:.93rem;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .lin.feito .val{opacity:.6}
+  .vazio{padding:14px;color:var(--ink-3);font-size:.85rem;border-top:1px solid var(--line)}
+  .rodape{display:flex;justify-content:space-between;padding:9px 14px;border-top:1px solid var(--line);font-size:.8rem;color:var(--ink-3)}
+
+  .fab{
+    position:fixed;right:18px;bottom:calc(var(--tabbar) + env(safe-area-inset-bottom) + 16px);z-index:25;
+    width:58px;height:58px;border-radius:18px;background:var(--accent);color:var(--on-accent);
+    font-size:1.9rem;font-weight:300;box-shadow:0 6px 18px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;
+  }
+
+  /* ---------- barra de abas ---------- */
+  .abas{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;
+    background:var(--surface);border-top:1px solid var(--line);
+    padding-bottom:env(safe-area-inset-bottom);height:calc(var(--tabbar) + env(safe-area-inset-bottom));
+  }
+  .abas button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:.72rem;color:var(--ink-3)}
+  .abas button svg{width:22px;height:22px}
+  .abas button.on{color:var(--accent);font-weight:600}
+
+  /* ---------- gráfico ---------- */
+  .graf{position:relative;padding:4px 6px 6px;touch-action:pan-y}
+  .graf svg{display:block;width:100%;height:auto}
+  .graf-dica{
+    position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:.78rem;line-height:1.35;
+    padding:7px 10px;border-radius:9px;white-space:nowrap;opacity:0;transition:opacity .12s;transform:translate(-50%,-112%)
+  }
+  .graf-dica.on{opacity:1}
+  .graf-dica b{font-weight:650}
+  .tab-ano{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center}
+  .tab-ano > div{padding:10px 8px;border-top:1px solid var(--line);font-size:.85rem;white-space:nowrap}
+  .tab-ano > div:nth-child(3n+1){padding-left:14px;overflow:hidden;text-overflow:ellipsis}
+  .tab-ano > div:nth-child(3n){padding-right:14px}
+  .tab-ano .h{font-size:.72rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;border-top:0;padding-top:4px;padding-bottom:6px}
+  .tab-ano .v{text-align:right;font-variant-numeric:tabular-nums}
+  .tab-ano .hoje{font-weight:650}
+
+  /* ---------- cartão ---------- */
+  .campo-lin{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 14px;border-top:1px solid var(--line);min-height:52px}
+  .campo-lin .nome{flex:1;min-width:0;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .campo-lin input.txt{flex:1;min-width:0;border:1px solid transparent;background:transparent;border-radius:9px;padding:8px;font-size:.9rem}
+  .campo-lin input.txt:focus{border-color:var(--line-strong);background:var(--field);outline:none}
+  input.moeda{
+    width:122px;text-align:right;border:1px solid var(--line);background:var(--field);border-radius:10px;
+    padding:9px 10px;font-variant-numeric:tabular-nums;font-size:.92rem;
+  }
+  input.moeda:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+  .x{width:40px;height:40px;border-radius:10px;color:var(--ink-3);font-size:1.3rem;flex:none}
+  .x:active{background:var(--del-bg);color:var(--neg)}
+  .add{display:block;width:100%;text-align:left;padding:13px 14px;border-top:1px solid var(--line);color:var(--accent);font-weight:600;font-size:.88rem}
+  .fx{padding:10px 14px;border-top:1px solid var(--line)}
+  .fx .l1{display:flex;justify-content:space-between;gap:10px;font-size:.9rem}
+  .fx .l1 .d{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fx .l1 .d small{color:var(--ink-3);margin-left:6px}
+  .fx .l1 b{font-variant-numeric:tabular-nums;font-weight:600}
+  .seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:3px;margin-top:8px}
+  .seg button{flex:1;padding:8px 4px;border-radius:8px;font-size:.8rem;color:var(--ink-2)}
+  .seg button.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .seg button.on.prevista{color:var(--ink-2)}
+  .seg button.on.transicao{color:var(--warn)}
+  .seg button.on.lancada{color:var(--pos)}
+  input[type=date]{border:1px solid var(--line);background:var(--field);border-radius:10px;padding:8px 10px;font-size:.9rem}
+  details.como summary{list-style:none;padding:11px 14px;border-top:1px solid var(--line);color:var(--accent);font-weight:600;font-size:.86rem;cursor:pointer}
+  details.como summary::-webkit-details-marker{display:none}
+  details.como .kv small{display:block;color:var(--ink-3);font-size:.74rem;margin-top:2px;font-weight:400}
+
+  /* ---------- folha inferior (formulários) ---------- */
+  .veu{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:50;opacity:0;transition:opacity .2s}
+  .veu.on{opacity:1}
+  .folha{
+    position:fixed;left:0;right:0;bottom:0;z-index:51;background:var(--surface);
+    border-radius:20px 20px 0 0;max-height:92vh;overflow:auto;
+    padding:8px 18px calc(18px + env(safe-area-inset-bottom));
+    transform:translateY(100%);transition:transform .22s ease;
+  }
+  .folha.on{transform:none}
+  .folha .puxador{width:40px;height:4px;border-radius:2px;background:var(--line-strong);margin:4px auto 10px}
+  .folha h2{font-size:1.1rem;margin:0 0 4px}
+  .folha .sub{font-size:.83rem;color:var(--ink-3);margin-bottom:10px}
+  .folha label.rot{display:block;font-size:.78rem;color:var(--ink-2);font-weight:600;margin:14px 0 6px}
+  .folha input.campo,.folha select.campo{
+    width:100%;border:1px solid var(--line);background:var(--field);border-radius:12px;padding:12px 13px;font-size:1rem
+  }
+  .folha input.campo:focus,.folha select.campo:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+  .folha input.valor{font-size:1.5rem;font-weight:650;font-variant-numeric:tabular-nums}
+  .folha .seg{margin-top:0}
+  .folha .seg button{padding:10px 4px;font-size:.87rem}
+  .folha .seg button.on.despesa{color:var(--neg)}
+  .folha .seg button.on.receita{color:var(--pos)}
+  .folha .dica{font-size:.78rem;color:var(--ink-3);margin-top:6px}
+  .folha .linha2{display:flex;gap:10px}
+  .folha .linha2 > *{flex:1}
+  .interr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px}
+  .interr input{width:22px;height:22px;accent-color:var(--accent)}
+  .acoes{display:flex;gap:10px;margin-top:20px}
+  .btn{flex:1;padding:14px;border-radius:13px;font-weight:650;font-size:.97rem;text-align:center;border:1px solid var(--line);background:var(--surface-2)}
+  .btn.pri{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+  .btn.perigo{color:var(--neg);background:var(--del-bg);border-color:transparent;flex:0 0 auto;padding:14px 18px}
+  .opcoes button{display:block;width:100%;text-align:left;padding:13px 14px;border:1px solid var(--line);border-radius:12px;margin-top:9px;background:var(--surface-2)}
+  .opcoes button b{display:block;font-weight:600}
+  .opcoes button small{color:var(--ink-3);font-size:.8rem}
+  .erro{color:var(--neg);font-size:.83rem;margin-top:8px}
+
+  /* ---------- telas cheias (entrar, senha, configurar) ---------- */
+  .tela{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:32px 24px calc(32px + env(safe-area-inset-bottom));max-width:460px;margin:0 auto}
+  .tela .logo{width:64px;height:64px;border-radius:18px;background:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:22px}
+  .tela h2{font-size:1.5rem;margin:0 0 8px;letter-spacing:-.01em}
+  .tela p{color:var(--ink-2);margin:0 0 12px;font-size:.95rem}
+  .tela .btn{flex:none;display:block;width:100%;margin-top:12px}
+  .tela input.campo{width:100%;border:1px solid var(--line);background:var(--field);border-radius:12px;padding:13px 14px;font-size:1rem;margin-top:8px}
+  .tela ol{padding-left:20px;color:var(--ink-2);font-size:.9rem;margin:0 0 8px}
+  .tela ol li{margin-bottom:6px}
+  .tela code{font-size:.85em;background:var(--surface);border:1px solid var(--line);padding:1px 5px;border-radius:6px}
+  .lembrar{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:.9rem;color:var(--ink-2)}
+  .lembrar input{width:20px;height:20px;accent-color:var(--accent)}
+
+  .aviso{margin:0 0 12px;padding:11px 13px;border-radius:12px;background:var(--warn-soft);color:var(--warn);font-size:.84rem;display:flex;gap:10px;align-items:center}
+  .aviso button{margin-left:auto;font-weight:650;text-decoration:underline}
+
+  #toast{
+    position:fixed;left:50%;bottom:calc(var(--tabbar) + env(safe-area-inset-bottom) + 86px);transform:translate(-50%,10px);
+    background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.87rem;z-index:60;
+    opacity:0;transition:all .2s;pointer-events:none;max-width:calc(100vw - 32px);text-align:center
+  }
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<!-- ============ ENTRAR ============ -->
+<div id="t-entrar" class="tela hidden">
+  <div class="logo"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg></div>
+  <h2>Finanças pessoais</h2>
+  <p>Entre com a sua conta Microsoft para ler e gravar o arquivo de dados no seu OneDrive.</p>
+  <p style="font-size:.84rem;color:var(--ink-3)">O aplicativo só enxerga a pasta própria dele no OneDrive, e os dados continuam cifrados com a sua senha.</p>
+  <button class="btn pri" id="b-entrar">Entrar com a Microsoft</button>
+  <div class="erro" id="entrar-erro"></div>
+</div>
+
+<!-- ============ SENHA ============ -->
+<div id="t-senha" class="tela hidden">
+  <div class="logo"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div>
+  <h2>Dados protegidos</h2>
+  <p id="senha-txt">Digite a senha dos seus dados — a mesma que você usa no computador.</p>
+  <input class="campo" type="password" id="senha-inp" autocomplete="current-password" placeholder="Senha">
+  <label class="lembrar"><input type="checkbox" id="senha-lembrar" checked> Lembrar neste celular</label>
+  <p style="font-size:.78rem;color:var(--ink-3);margin-top:6px">Ao lembrar, a chave fica guardada só neste aparelho e o app abre direto. Desmarque se outras pessoas usam o seu celular.</p>
+  <button class="btn pri" id="senha-ok">Abrir</button>
+  <div class="erro" id="senha-erro"></div>
+</div>
+
+<!-- ============ CONFIGURAR (arquivo ainda não está na pasta do app) ============ -->
+<div id="t-config" class="tela hidden">
+  <h2>Falta trazer o arquivo</h2>
+  <p>A conta está ligada, mas o arquivo de dados ainda não está na pasta do aplicativo no OneDrive.</p>
+  <ol>
+    <li>No computador, abra o OneDrive e procure a pasta <code>Aplicativos</code> (ou <code>Apps</code>) → <code>Financas Pessoais</code>. Ela acabou de ser criada.</li>
+    <li>Mova para lá o arquivo <code>financas-pessoais-dados.json</code>.</li>
+    <li>Volte aqui e toque em <b>Procurar de novo</b>.</li>
+  </ol>
+  <button class="btn pri" id="cfg-de-novo">Procurar de novo</button>
+  <button class="btn" id="cfg-enviar">Enviar o arquivo deste celular</button>
+  <input type="file" id="cfg-arquivo" accept=".json,application/json" class="hidden">
+  <div class="erro" id="cfg-erro"></div>
+</div>
+
+<!-- ============ APLICATIVO ============ -->
+<div id="app" class="hidden">
+  <div class="topo">
+    <h1 id="titulo">Conta corrente</h1>
+    <button class="sync" id="sync"><i></i><span>—</span></button>
+  </div>
+  <main>
+    <div id="aviso" class="aviso hidden"></div>
+
+    <!-- aba Mês -->
+    <section id="v-mes">
+      <div class="navmes">
+        <button class="seta" data-mes="-1" aria-label="Mês anterior">‹</button>
+        <button class="nome" id="mes-nome"></button>
+        <button class="seta" data-mes="1" aria-label="Próximo mês">›</button>
+      </div>
+      <div id="mes-resumo"></div>
+      <div class="filtro" id="mes-filtro">
+        <button data-f="todos" class="on">Todos</button>
+        <button data-f="pend">A pagar / receber</button>
+      </div>
+      <div id="mes-secoes"></div>
+    </section>
+
+    <!-- aba Fluxo -->
+    <section id="v-fluxo" class="hidden">
+      <div class="navmes">
+        <button class="seta" data-ano="-1" aria-label="Ano anterior">‹</button>
+        <div class="nome" id="fluxo-nome"></div>
+        <button class="seta" data-ano="1" aria-label="Próximo ano">›</button>
+      </div>
+      <div class="card">
+        <header><h3>Saldo final mês a mês</h3><span class="sub" id="fluxo-sub"></span></header>
+        <div class="graf" id="graf"><div class="graf-dica" id="graf-dica"></div></div>
+      </div>
+      <div class="card" id="fluxo-tab"></div>
+    </section>
+
+    <!-- aba Cartão -->
+    <section id="v-cartao" class="hidden">
+      <div class="navmes">
+        <button class="seta" data-mc="-1" aria-label="Fatura anterior">‹</button>
+        <div class="nome" id="cart-nome"></div>
+        <button class="seta" data-mc="1" aria-label="Próxima fatura">›</button>
+      </div>
+      <div id="cart-calc"></div>
+      <div id="cart-listas"></div>
+    </section>
+  </main>
+
+  <button class="fab" id="fab" aria-label="Novo lançamento">+</button>
+
+  <nav class="abas">
+    <button data-aba="mes" class="on">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Lançamentos</button>
+    <button data-aba="fluxo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8"/><path d="M3 21h18"/></svg>Fluxo de caixa</button>
+    <button data-aba="cartao">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg>Cartão</button>
+  </nav>
+</div>
+
+<div class="veu hidden" id="veu"></div>
+<div class="folha hidden" id="folha"></div>
+<div id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ======================= CONFIGURAÇÃO ======================= */
+const CLIENT_ID = "f60188b0-9d78-45fa-83db-92ca59380da2";
+const AUTORIDADE = "https://login.microsoftonline.com/consumers/oauth2/v2.0";
+const ESCOPOS = "openid offline_access Files.ReadWrite.AppFolder";
+const REDIRECT = location.origin + location.pathname.replace(/index\.html$/, "");
+const ARQUIVO = "financas-pessoais-dados.json";
+const GRAPH_ITEM = "https://graph.microsoft.com/v1.0/me/drive/special/approot:/" + ARQUIVO;
+
+const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const MESES_CURTO = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const SECOES = [
+  {id:"geral", nome:"Geral"},
+  {id:"investimentos", nome:"Investimentos"},
+  {id:"terceiros", nome:"Terceiros"}
+];
+const LS = {auth:"fpm.auth", pkce:"fpm.pkce", local:"fpm.local", base:"fpm.base", meta:"fpm.meta", tentativa:"fpm.tentativa"};
+
+/* ======================= LÓGICA (igual à versão do computador) ======================= */
+const brl = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
+const fmt = n => brl.format(Number.isFinite(n) ? n : 0);
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+const el  = (tag, cls) => { const n = document.createElement(tag); if(cls) n.className = cls; return n; };
+
+function evalExpr(raw){
+  if(raw === null || raw === undefined) return 0;
+  let s = String(raw).trim().replace(/^=/,"").replace(/R\$/gi,"").replace(/\s+/g,"");
+  if(!s) return 0;
+  if(s.indexOf(",") >= 0) s = s.replace(/\./g,"").replace(/,/g,".");
+  if(!/^[0-9+\-*/().]+$/.test(s)) return NaN;
+  try{
+    const v = Function('"use strict";return (' + s + ')')();
+    return (typeof v === "number" && isFinite(v)) ? v : NaN;
+  }catch(e){ return NaN; }
+}
+
+const B64 = {
+  de: function(buf){
+    const a = new Uint8Array(buf); let s2 = "";
+    for(let i = 0; i < a.length; i++) s2 += String.fromCharCode(a[i]);
+    return btoa(s2);
+  },
+  para: function(txt){
+    const b = atob(txt), a = new Uint8Array(b.length);
+    for(let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i);
+    return a;
+  }
+};
+function derivarChave(senha, salt){
+  return crypto.subtle.importKey("raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveKey"])
+    .then(km => crypto.subtle.deriveKey(
+      {name:"PBKDF2", salt:salt, iterations:210000, hash:"SHA-256"}, km,
+      {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]));
+}
+function cifrarTexto(texto, chave, salt){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  return crypto.subtle.encrypt({name:"AES-GCM", iv:iv}, chave, new TextEncoder().encode(texto))
+    .then(ct => ({cifrado:true, v:1, salt:B64.de(salt), iv:B64.de(iv), dados:B64.de(ct)}));
+}
+function decifrarEnvelope(env, senha){
+  const salt = B64.para(env.salt);
+  let chave;
+  return derivarChave(senha, salt)
+    .then(k => { chave = k; return crypto.subtle.decrypt({name:"AES-GCM", iv:B64.para(env.iv)}, k, B64.para(env.dados)); })
+    .then(pt => ({texto:new TextDecoder().decode(pt), chave:chave, salt:salt}));
+}
+
+function mesVazio(){ return {lancamentos:[], cartao:[], saldoInicialManual:null, fatura:{real:null, raw:"", efetivado:false, ordem:0, agendado:false, nota:""}}; }
+function anoVazio(){ return {meses: Array.from({length:12}, mesVazio)}; }
+
+function normaliza(d){
+  if(!d || typeof d !== "object") d = {};
+  if(!d.anos) d.anos = {};
+  if(!d.series) d.series = {};
+  if(!d.investimentos) d.investimentos = {};
+  if(!Array.isArray(d.investimentos.caixinhas)) d.investimentos.caixinhas = [];
+  if(!d.investimentos.meses) d.investimentos.meses = {};
+  d.investimentos.caixinhas.forEach(cx=>{
+    if(!cx.icone) cx.icone = "moeda";
+    if(cx.meta === undefined) cx.meta = null;
+    if(cx.inicial !== undefined){                       // modelo antigo: vira saldo do mês de início
+      const de = cx.desde || {ano:new Date().getFullYear(), mes:0};
+      const k = de.ano + "-" + de.mes;
+      if(!d.investimentos.meses[k]) d.investimentos.meses[k] = {saldos:{}};
+      if(!d.investimentos.meses[k].saldos) d.investimentos.meses[k].saldos = {};
+      if(d.investimentos.meses[k].saldos[cx.id] === undefined) d.investimentos.meses[k].saldos[cx.id] = cx.inicial;
+      delete cx.inicial; delete cx.desde;
+    }
+  });
+  Object.keys(d.investimentos.meses).forEach(k=>{
+    const b2 = d.investimentos.meses[k];
+    if(!b2.saldos) b2.saldos = {};
+    delete b2.rendimentos;
+  });
+  if(!d.cartao) d.cartao = {anos:{}};
+  if(!d.cartao.anos) d.cartao.anos = {};
+  if(d.cartao.debito === undefined) d.cartao.debito = false;
+  if(!Array.isArray(d.cartao.cartoes) || !d.cartao.cartoes.length){
+    d.cartao.cartoes = [{id:"visa", nome:"Visa"}, {id:"master", nome:"Mastercard"}, {id:"prime", nome:"Prime"}];
+  }
+  if(!d.cartao.compras) d.cartao.compras = {};
+  if(!d.cartao.meses) d.cartao.meses = {};
+  Object.keys(d.anos).forEach(k=>{
+    const a = d.anos[k];
+    if(!a.meses) a.meses = Array.from({length:12}, mesVazio);
+    for(let m=0;m<12;m++){
+      const mm = a.meses[m] || (a.meses[m] = mesVazio());
+      if(!mm.lancamentos) mm.lancamentos = [];
+      mm.lancamentos.forEach(l=>{
+        if(!l.tipoRec) l.tipoRec = l.serieId ? "fixa" : "variavel";
+        if(l.serieId === undefined) l.serieId = null;
+        if(l.agendado === undefined) l.agendado = false;
+        if(l.debito === undefined) l.debito = false;
+        if(l.nota === undefined) l.nota = "";
+        if(l.inv === undefined) l.inv = null;
+      });
+      if(!mm.cartao) mm.cartao = [];
+      if(mm.saldoInicialManual === undefined) mm.saldoInicialManual = null;
+      if(!mm.fatura) mm.fatura = {real:null, raw:"", efetivado:false};
+      if(mm.fatura.agendado === undefined) mm.fatura.agendado = false;
+      if(mm.fatura.nota === undefined) mm.fatura.nota = "";
+      if(mm.fatura.ordem === undefined || mm.fatura.ordem === null) mm.fatura.ordem = 0;
+      // migra um lançamento manual chamado "Cartão de crédito" para a linha da fatura
+      const i = mm.lancamentos.findIndex(l => l.secao === "geral" && /^cart(ã|a)o de cr[ée]dito$/i.test((l.desc||"").trim()));
+      if(i >= 0 && mm.fatura.real === null){
+        const l = mm.lancamentos[i];
+        mm.fatura = {real:Number(l.valor)||0, raw:l.raw || "", efetivado:!!l.efetivado};
+        mm.lancamentos.splice(i,1);
+      }
+    }
+  });
+  d.versao = 2;
+  return d;
+}
+
+function getAno(y, criar){
+  const k = String(y);
+  if(!state.anos[k]){ if(!criar) return null; state.anos[k] = anoVazio(); }
+  return state.anos[k];
+}
+function getMes(y, m, criar){
+  const a = getAno(y, criar);
+  if(!a) return null;
+  if(!a.meses[m]) a.meses[m] = mesVazio();
+  if(!a.meses[m].fatura) a.meses[m].fatura = {real:null, raw:"", efetivado:false, ordem:0, agendado:false, nota:""};
+  if(a.meses[m].fatura.agendado === undefined) a.meses[m].fatura.agendado = false;
+  if(a.meses[m].fatura.nota === undefined) a.meses[m].fatura.nota = "";
+  if(a.meses[m].fatura.ordem === undefined || a.meses[m].fatura.ordem === null) a.meses[m].fatura.ordem = 0;
+  return a.meses[m];
+}
+
+/* ======================= SÉRIES (fixas e parceladas) ======================= */
+function novaOcorrencia(s, parcela){
+  return {id:uid(), secao:s.secao, desc:s.desc, tipo:s.tipoMov,
+          valor:s.valor, raw:s.raw, efetivado:false,
+          serieId:s.id, tipoRec:s.tipo, agendado:false, debito:!!s.debito, nota:"",
+          parcela:(parcela||null), parcelas:(s.parcelas||null)};
+}
+function ocorrencias(serieId){
+  const out = [];
+  Object.keys(state.anos).forEach(k=>{
+    const y = Number(k);
+    state.anos[k].meses.forEach((mm, m)=>{
+      if(!mm || !mm.lancamentos) return;
+      mm.lancamentos.forEach(l=>{ if(l.serieId === serieId) out.push({ano:y, mes:m, mm:mm, l:l}); });
+    });
+  });
+  out.sort((a,b)=> (a.ano - b.ano) || (a.mes - b.mes));
+  return out;
+}
+function renumerar(serieId){
+  const s = state.series[serieId];
+  if(!s || s.tipo !== "parcelada") return;
+  const oc = ocorrencias(serieId);
+  oc.forEach((o, i)=>{ o.l.parcela = i + 1; o.l.parcelas = oc.length; });
+  s.parcelas = oc.length;
+}
+/* fixas: materializa até dezembro do ano pedido, sem recriar o que foi apagado */
+function materializarFixa(id, ateAno){
+  const s = state.series[id];
+  if(!s || s.tipo !== "fixa" || ateAno <= s.ateAno) return;
+  for(let y = s.ateAno + 1; y <= ateAno; y++){
+    for(let m = 0; m < 12; m++){
+      if(y === s.inicio.ano && m < s.inicio.mes) continue;
+      getMes(y, m, true).lancamentos.push(novaOcorrencia(s));
+    }
+  }
+  s.ateAno = ateAno;
+}
+function estenderFixas(y){
+  Object.keys(state.series).forEach(id=>{
+    const s = state.series[id];
+    if(s && s.tipo === "fixa" && y > s.ateAno) materializarFixa(id, y);
+  });
+}
+/* transforma um lançamento avulso em série */
+function criarSerie(l, y, m, tipo, nParcelas){
+  const id = uid();
+  const s = {
+    id:id, tipo:tipo, secao:l.secao, desc:l.desc, tipoMov:l.tipo,
+    valor:Number(l.valor)||0, raw:l.raw || "",
+    inicio:{ano:y, mes:m}, debito:!!l.debito,
+    parcelas:(tipo === "parcelada" ? nParcelas : null),
+    ateAno:(tipo === "fixa" ? y - 1 : null)
+  };
+  state.series[id] = s;
+  l.serieId = id; l.tipoRec = tipo;
+  l.parcela = (tipo === "parcelada" ? 1 : null);
+  l.parcelas = s.parcelas;
+
+  if(tipo === "fixa"){
+    // resto do ano corrente + o ano seguinte inteiro
+    for(let mm2 = m + 1; mm2 < 12; mm2++) getMes(y, mm2, true).lancamentos.push(novaOcorrencia(s));
+    s.ateAno = y;
+    materializarFixa(id, Math.max(y + 1, ano + 1));
+  } else {
+    let yy = y, mm2 = m;
+    for(let i = 2; i <= nParcelas; i++){
+      mm2++; if(mm2 > 11){ mm2 = 0; yy++; }
+      getMes(yy, mm2, true).lancamentos.push(novaOcorrencia(s, i));
+    }
+  }
+}
+function desfazerSerie(l, y, m){
+  const id = l.serieId;
+  ocorrencias(id).forEach(o=>{
+    if(o.l === l) return;
+    const i = o.mm.lancamentos.indexOf(o.l);
+    if(i >= 0) o.mm.lancamentos.splice(i, 1);
+  });
+  delete state.series[id];
+  l.serieId = null; l.tipoRec = "variavel"; l.parcela = null; l.parcelas = null;
+}
+function ajustarParcelas(id, novo){
+  const s = state.series[id];
+  if(!s) return;
+  const oc = ocorrencias(id);
+  if(novo < oc.length){
+    oc.slice(novo).forEach(o=>{
+      const i = o.mm.lancamentos.indexOf(o.l);
+      if(i >= 0) o.mm.lancamentos.splice(i, 1);
+    });
+  } else if(novo > oc.length){
+    const ult = oc[oc.length - 1];
+    let yy = ult.ano, mm2 = ult.mes;
+    for(let i = oc.length + 1; i <= novo; i++){
+      mm2++; if(mm2 > 11){ mm2 = 0; yy++; }
+      getMes(yy, mm2, true).lancamentos.push(novaOcorrencia(s, i));
+    }
+  }
+  s.parcelas = novo;
+  renumerar(id);
+}
+/* aplica uma mudança a um escopo: "so" | "adiante" | "todos" */
+function noEscopo(o, y, m, escopo){
+  if(escopo === "todos") return true;
+  if(escopo === "so") return o.ano === y && o.mes === m;
+  return o.ano > y || (o.ano === y && o.mes >= m);
+}
+function aplicarValor(id, y, m, escopo, valor, raw, tipoMov){
+  ocorrencias(id).forEach(o=>{
+    if(!noEscopo(o, y, m, escopo)) return;
+    o.l.valor = valor; o.l.raw = raw; o.l.tipo = tipoMov;
+  });
+  const s = state.series[id];
+  if(s && escopo !== "so"){ s.valor = valor; s.raw = raw; s.tipoMov = tipoMov; }
+}
+function excluirSerie(id, y, m, escopo){
+  ocorrencias(id).forEach(o=>{
+    if(!noEscopo(o, y, m, escopo)) return;
+    const i = o.mm.lancamentos.indexOf(o.l);
+    if(i >= 0) o.mm.lancamentos.splice(i, 1);
+  });
+  const rest = ocorrencias(id);
+  if(rest.length === 0) delete state.series[id];
+  else {
+    const s = state.series[id];
+    if(s && s.tipo === "fixa" && escopo === "adiante") s.ateAno = 9999; // encerrada: não volta a crescer
+    renumerar(id);
+  }
+}
+
+const ESTADOS = [
+  {id:"prevista",  rot:"prevista",  dica:"Ainda vai ser cobrada antes do fechamento"},
+  {id:"transicao", rot:"transição", dica:"Já foi comprada, mas ainda não apareceu no valor da fatura"},
+  {id:"lancada",   rot:"lançada",   dica:"Já está dentro do valor da fatura informado acima"}
+];
+function chaveMes(y, m){ return y + "-" + m; }
+function mesCartao(y, m, criar){
+  const k = chaveMes(y, m);
+  if(!state.cartao.meses[k]){
+    if(!criar) return null;
+    state.cartao.meses[k] = {faturas:{}, empenhado:[], estados:{}, valores:{}, fechamento:null};
+  }
+  const mm = state.cartao.meses[k];
+  if(!mm.faturas) mm.faturas = {};
+  if(!mm.empenhado) mm.empenhado = [];
+  if(!mm.empIniciado){
+    mm.empIniciado = true;
+    if(!mm.empenhado.length){
+      for(let i = 1; i <= 10; i++) mm.empenhado.push({id:uid(), desc:"Compra " + i, valor:0, raw:""});
+    }
+  }
+  if(!mm.estados) mm.estados = {};
+  if(!mm.valores) mm.valores = {};
+  return mm;
+}
+function indiceMes(compra, y, m){
+  return (y - compra.inicio.ano) * 12 + (m - compra.inicio.mes);
+}
+/* a compra cai neste mês? devolve a parcela, quando parcelada */
+function ocorreEm(compra, y, m){
+  const i = indiceMes(compra, y, m);
+  if(i < 0) return null;
+  if(compra.pulos && compra.pulos.indexOf(y + "-" + m) >= 0) return null;
+  if(compra.tipo === "parcelada") return (i < compra.parcelas) ? {parcela:i + 1, total:compra.parcelas} : null;
+  if(compra.fim){
+    const f = (compra.fim.ano - compra.inicio.ano) * 12 + (compra.fim.mes - compra.inicio.mes);
+    if(i > f) return null;
+  }
+  return {parcela:null, total:null};
+}
+/* mês final da cobrança, em índice absoluto; fixas não têm fim */
+function fimCompra(c){
+  const ini = c.inicio.ano * 12 + c.inicio.mes;
+  if(c.tipo === "parcelada") return ini + (Math.max(1, c.parcelas || 1) - 1);
+  if(c.fim) return c.fim.ano * 12 + c.fim.mes;
+  return Infinity;
+}
+/* as que acabam primeiro vêm antes; dentro do mesmo mês final, as de maior valor
+   primeiro; as fixas ficam no fim, em ordem alfabética */
+function ordenarPorFim(a, b, va, vb){
+  const fa = fimCompra(a), fb = fimCompra(b);
+  if(fa !== fb) return fa - fb;
+  if(fa !== Infinity){
+    const na = (va !== undefined && va !== null) ? Number(va) || 0 : Number(a.valor) || 0;
+    const nb = (vb !== undefined && vb !== null) ? Number(vb) || 0 : Number(b.valor) || 0;
+    if(na !== nb) return nb - na;
+  }
+  return (a.desc || "").localeCompare(b.desc || "", "pt-BR");
+}
+function valorCompra(compra, y, m){
+  const mm = mesCartao(y, m, false);
+  if(mm && mm.valores && mm.valores[compra.id] !== undefined && mm.valores[compra.id] !== null){
+    return Number(mm.valores[compra.id]) || 0;
+  }
+  return Number(compra.valor) || 0;
+}
+function comprasDoMes(y, m){
+  const out = [];
+  Object.keys(state.cartao.compras).forEach(id=>{
+    const c = state.cartao.compras[id];
+    const oc = ocorreEm(c, y, m);
+    if(!oc) return;
+    const mm = mesCartao(y, m, false);
+    out.push({
+      compra:c, parcela:oc.parcela, total:oc.total,
+      valor:valorCompra(c, y, m),
+      estado:(mm && mm.estados[id]) ? mm.estados[id] : "prevista"
+    });
+  });
+  out.sort((a,b)=> ordenarPorFim(a.compra, b.compra, a.valor, b.valor));
+  return out;
+}
+/* muda o valor de uma compra respeitando o escopo escolhido */
+function aplicarValorCompra(id, y, m, escopo, novo){
+  const c = state.cartao.compras[id];
+  if(!c) return;
+  if(escopo === "so"){
+    mesCartao(y, m, true).valores[id] = novo;
+    return;
+  }
+  if(escopo === "adiante"){
+    // congela o valor atual nos meses anteriores, para não reescrever o passado
+    let yy = c.inicio.ano, mm2 = c.inicio.mes;
+    while(yy < y || (yy === y && mm2 < m)){
+      if(ocorreEm(c, yy, mm2)){
+        const mk = mesCartao(yy, mm2, true);
+        if(mk.valores[id] === undefined || mk.valores[id] === null) mk.valores[id] = valorCompra(c, yy, mm2);
+      }
+      mm2++; if(mm2 > 11){ mm2 = 0; yy++; }
+    }
+  }
+  c.valor = novo;
+  // do mês escolhido em diante (ou em todos) o valor volta a ser o da compra
+  Object.keys(state.cartao.meses).forEach(k=>{
+    const partes = k.split("-"), ky = Number(partes[0]), km = Number(partes[1]);
+    const depois = ky > y || (ky === y && km >= m);
+    if(escopo === "todos" || depois) delete state.cartao.meses[k].valores[id];
+  });
+}
+
+/* apaga uma compra respeitando o escopo escolhido */
+function limparMesCompra(id, y, m){
+  const mk = state.cartao.meses[y + "-" + m];
+  if(!mk) return;
+  if(mk.estados) delete mk.estados[id];
+  if(mk.valores) delete mk.valores[id];
+}
+function excluirCompra(id, y, m, escopo){
+  const c = state.cartao.compras[id];
+  if(!c) return;
+  if(escopo === "so"){
+    if(!c.pulos) c.pulos = [];
+    const k = y + "-" + m;
+    if(c.pulos.indexOf(k) < 0) c.pulos.push(k);
+    limparMesCompra(id, y, m);
+    return;
+  }
+  if(escopo === "adiante"){
+    const i = indiceMes(c, y, m);
+    // se o mês escolhido é o primeiro (ou anterior a ele), não sobra nada da compra
+    if(i <= 0){ excluirCompra(id, y, m, "todos"); return; }
+    if(c.tipo === "parcelada"){
+      c.parcelas = i;
+    } else {
+      let fy = y, fm = m - 1;
+      if(fm < 0){ fm = 11; fy--; }
+      c.fim = {ano:fy, mes:fm};
+    }
+    Object.keys(state.cartao.meses).forEach(k=>{
+      const p = k.split("-"), ky = Number(p[0]), km = Number(p[1]);
+      if(ky > y || (ky === y && km >= m)) limparMesCompra(id, ky, km);
+    });
+    return;
+  }
+  delete state.cartao.compras[id];
+  Object.keys(state.cartao.meses).forEach(k=>{
+    const p = k.split("-");
+    limparMesCompra(id, Number(p[0]), Number(p[1]));
+  });
+}
+
+
+function calcularFatura(y, m){
+  const mm = mesCartao(y, m, true);
+  let faturas = 0;
+  state.cartao.cartoes.forEach(c=>{
+    const f = mm.faturas[c.id];
+    faturas += f ? (Number(f.valor) || 0) : 0;
+  });
+  let empenhado = 0;
+  mm.empenhado.forEach(e=> empenhado += Number(e.valor) || 0);
+
+  let lancadas = 0, transicao = 0, previstas = 0;
+  comprasDoMes(y, m).forEach(it=>{
+    if(it.estado === "lancada") lancadas += it.valor;
+    else if(it.estado === "transicao") transicao += it.valor;
+    else previstas += it.valor;
+  });
+
+  const variaveis = faturas + empenhado - lancadas;
+  const parcial   = variaveis + lancadas;
+  // "previstas" é tudo o que ainda não foi lançado (inclui as em transição)
+  const aPrever   = transicao + previstas;
+  // as em transição já aparecem dentro das compras variáveis, então não somam de novo
+  const total     = parcial + aPrever - transicao;
+  const orcamento = orcEfetivo(y, m).valor;
+  return {faturas, empenhado, lancadas, transicao, previstas, aPrever, variaveis, parcial, total,
+          orcamento, disponivel: orcamento - total};
+}
+/* o mês da dimensão é o de VENCIMENTO da fatura; ela fecha no mês anterior */
+function dataFechamento(y, m){
+  const mm = mesCartao(y, m, true);
+  if(mm.fechamento) return mm.fechamento;
+  let fy = y, fm = m - 1;
+  if(fm < 0){ fm = 11; fy = y - 1; }
+  const ultimo = new Date(fy, fm + 1, 0).getDate();      // fevereiro não vira dia 30
+  const dia = Math.min(state.cartao.diaFechamento || 27, ultimo);
+  return fy + "-" + String(fm + 1).padStart(2, "0") + "-" + String(dia).padStart(2, "0");
+}
+function diasAte(iso){
+  const d = new Date(iso + "T00:00:00");
+  if(isNaN(d.getTime())) return null;
+  const h = new Date(); h.setHours(0,0,0,0);
+  return Math.round((d - h) / 86400000);
+}
+
+/* ---- orçamento do cartão ---- */
+function getAnoCartao(y, criar){
+  const k = String(y);
+  if(!state.cartao.anos[k]){
+    if(!criar) return null;
+    state.cartao.anos[k] = {orcamento: Array(12).fill(null)};
+  }
+  return state.cartao.anos[k];
+}
+function orcDefinido(y, m){
+  const a = getAnoCartao(y, false);
+  if(!a) return null;
+  const v = a.orcamento[m];
+  return (v === null || v === undefined) ? null : Number(v);
+}
+// orçamento válido para o mês: o próprio, ou o do mês anterior mais recente
+function orcEfetivo(y, m){
+  let yy = y, mm = m;
+  for(let i = 0; i < 120; i++){
+    const v = orcDefinido(yy, mm);
+    if(v !== null) return {valor:v, ano:yy, mes:mm, proprio:(yy===y && mm===m)};
+    mm--; if(mm < 0){ mm = 11; yy--; }
+  }
+  return {valor:0, ano:null, mes:null, proprio:false};
+}
+function faturaValor(y, m){
+  const mm = getMes(y, m, true);
+  if(mm.fatura.real !== null && mm.fatura.real !== undefined) return Number(mm.fatura.real) || 0;
+  return orcEfetivo(y, m).valor;
+}
+
+/* ======================= CÁLCULOS ======================= */
+function totaisSecao(y, m, secId){
+  const mm = getMes(y, m, true);
+  let rec = 0, desp = 0;
+  mm.lancamentos.forEach(l=>{
+    if(l.secao !== secId) return;
+    const v = Number(l.valor) || 0;
+    if(l.tipo === "receita") rec += v; else desp += v;
+  });
+  if(secId === "geral") desp += faturaValor(y, m);
+  return {rec, desp};
+}
+function resultado(y, m){
+  const mm = getMes(y, m, false);
+  const r = {receitas:0, despesas:0, resultado:0, recEfet:0, despEfet:0, pendentes:0};
+  if(!mm) return r;
+  for(const l of mm.lancamentos){
+    const v = Number(l.valor) || 0;
+    if(l.tipo === "receita"){ r.receitas += v; if(l.efetivado) r.recEfet += v; }
+    else { r.despesas += v; if(l.efetivado) r.despEfet += v; }
+    if(!l.efetivado && v) r.pendentes++;
+  }
+  const f = faturaValor(y, m);
+  if(f){
+    r.despesas += f;
+    if(mm.fatura.efetivado) r.despEfet += f; else r.pendentes++;
+  }
+  r.resultado = r.receitas - r.despesas;
+  return r;
+}
+function anoBase(){
+  const ks = Object.keys(state.anos).map(Number);
+  return ks.length ? Math.min.apply(null, ks) : ano;
+}
+function saldoInicial(y, m, guard){
+  guard = guard || 0;
+  const mm = getMes(y, m, false);
+  if(mm && mm.saldoInicialManual !== null && mm.saldoInicialManual !== undefined) return Number(mm.saldoInicialManual) || 0;
+  if(guard > 400) return 0;
+  let py = y, pm = m - 1;
+  if(pm < 0){ py = y - 1; pm = 11; }
+  if(py < anoBase() || !state.anos[String(py)]) return 0;
+  return saldoInicial(py, pm, guard + 1) + resultado(py, pm).resultado;
+}
+function saldoInicialDerivado(y, m){
+  let py = y, pm = m - 1;
+  if(pm < 0){ py = y - 1; pm = 11; }
+  if(py < anoBase() || !state.anos[String(py)]) return null;
+  return saldoInicial(py, pm) + resultado(py, pm).resultado;
+}
+// terceiros: despesa = você pagou por alguém (a receber); receita = você recebeu para gastar depois (a repassar)
+function posicaoTerceiros(y, m){
+  let acc = 0;
+  const y0 = anoBase();
+  for(let yy = y0; yy <= y; yy++){
+    if(!state.anos[String(yy)]) continue;
+    const fim = (yy === y) ? m : 11;
+    for(let mm = 0; mm <= fim; mm++){
+      const t = totaisSecao(yy, mm, "terceiros");
+      acc += t.desp - t.rec;
+    }
+  }
+  return acc;
+}
+
+function linhasAno(y){
+  const out = [];
+  for(let m = 0; m < 12; m++){
+    const si = saldoInicial(y, m);
+    const r  = resultado(y, m);
+    out.push({
+      mes:m, inicial:si, resultado:r.resultado, final:si + r.resultado,
+      aportes: totaisSecao(y, m, "investimentos").desp
+    });
+  }
+  return out;
+}
+
+/* ======================= MESCLAGEM ======================= */
+/* ======================= MESCLAGEM (3 vias) =======================
+   base   = última versão sincronizada (a que os dois lados conheciam)
+   local  = versão deste aparelho
+   remoto = versão que está no OneDrive agora
+   Regra: o que só um lado mudou prevalece; se os dois mudaram o mesmo
+   campo, vale o local. Listas de objetos com "id" são mescladas item a item. */
+function igual(a, b){ return JSON.stringify(a) === JSON.stringify(b); }
+function ehObj(x){ return x !== null && typeof x === "object" && !Array.isArray(x); }
+function listaComId(a){ return Array.isArray(a) && a.length > 0 && a.every(x => ehObj(x) && typeof x.id === "string"); }
+function semId(x){ const c = Object.assign({}, x); delete c.id; return JSON.stringify(c); }
+
+function mesclar(base, local, remoto){
+  if(igual(local, remoto)) return local;
+  if(base !== undefined && igual(base, local)) return remoto;
+  if(base !== undefined && igual(base, remoto)) return local;
+  if(local === undefined) return remoto;
+  if(remoto === undefined) return local;
+
+  if(ehObj(local) && ehObj(remoto)){
+    const b = ehObj(base) ? base : {};
+    const out = {};
+    const chaves = new Set(Object.keys(local).concat(Object.keys(remoto)));
+    chaves.forEach(k=>{
+      const temL = k in local, temR = k in remoto, temB = k in b;
+      if(temL && temR){ out[k] = mesclar(b[k], local[k], remoto[k]); return; }
+      if(temL){                                   // remoto não tem
+        if(temB && igual(b[k], local[k])) return; // remoto apagou, local não mexeu
+        out[k] = local[k]; return;
+      }
+      if(temB && igual(b[k], remoto[k])) return;  // local apagou, remoto não mexeu
+      out[k] = remoto[k];
+    });
+    return out;
+  }
+
+  const vazioOuId = a => Array.isArray(a) && (a.length === 0 || listaComId(a));
+  if(vazioOuId(local) && vazioOuId(remoto) && (listaComId(local) || listaComId(remoto))){
+    return mesclarLista(Array.isArray(base) ? base : [], local, remoto);
+  }
+  if(Array.isArray(local) && Array.isArray(remoto) && local.length === remoto.length &&
+     (!Array.isArray(base) || base.length === local.length)){
+    return local.map((v, i) => mesclar(Array.isArray(base) ? base[i] : undefined, v, remoto[i]));
+  }
+  return local;                                   // conflito sem estrutura: vale o local
+}
+
+function mesclarLista(base, local, remoto){
+  const B = new Map(base.filter(ehObj).map(x => [x.id, x]));
+  const Lm = new Map(local.map(x => [x.id, x]));
+  const Rm = new Map(remoto.map(x => [x.id, x]));
+
+  // itens criados nos dois lados com o mesmo conteúdo (ex.: meses gerados
+  // automaticamente em cada aparelho) contam uma vez só
+  // (e ocorrências da mesma rubrica fixa/parcelada geradas nos dois lados)
+  const novosL = local.filter(x => !B.has(x.id) && !Rm.has(x.id));
+  const usados = new Set(), descartar = new Set(), par = new Map();
+  const mesmaOcorrencia = (a, b) => a.serieId && a.serieId === b.serieId && (a.parcela || null) === (b.parcela || null);
+  remoto.forEach(x=>{
+    if(B.has(x.id) || Lm.has(x.id)) return;
+    let l = novosL.find(y => !usados.has(y.id) && semId(y) === semId(x));
+    if(!l) l = novosL.find(y => !usados.has(y.id) && mesmaOcorrencia(y, x));
+    if(l){ usados.add(l.id); descartar.add(x.id); par.set(l.id, x); }
+  });
+
+  const ordemMudou = lista => {
+    const comuns = base.map(x => x.id).filter(id => lista.some(y => y.id === id));
+    const naLista = lista.map(x => x.id).filter(id => B.has(id));
+    return !igual(comuns, naLista);
+  };
+  const primaria = (ordemMudou(local) || !ordemMudou(remoto)) ? local : remoto;
+  const secundaria = primaria === local ? remoto : local;
+
+  const ids = primaria.map(x => x.id);
+  secundaria.forEach((x, i)=>{
+    if(ids.indexOf(x.id) >= 0) return;
+    let pos = 0;
+    for(let j = i - 1; j >= 0; j--){
+      const p = ids.indexOf(secundaria[j].id);
+      if(p >= 0){ pos = p + 1; break; }
+    }
+    ids.splice(pos, 0, x.id);
+  });
+
+  const out = [];
+  ids.forEach(id=>{
+    if(descartar.has(id)) return;
+    const l = Lm.get(id), r = Rm.get(id), b = B.get(id);
+    if(l && r){ out.push(mesclar(b, l, r)); return; }
+    if(l && par.has(id)){ out.push(mesclar(undefined, l, par.get(id))); return; }
+    if(l){ if(b && igual(b, l)) return; out.push(l); return; }
+    if(r){ if(b && igual(b, r)) return; out.push(r); }
+  });
+  return out;
+}
+
+
+/* ======================= UTILIDADES ======================= */
+const $ = id => document.getElementById(id);
+const lsGet = k => { try{ return localStorage.getItem(k); }catch(e){ return null; } };
+const lsSet = (k, v) => { try{ localStorage.setItem(k, v); return true; }catch(e){ return false; } };
+const lsDel = k => { try{ localStorage.removeItem(k); }catch(e){} };
+const lsJSON = k => { const t = lsGet(k); if(!t) return null; try{ return JSON.parse(t); }catch(e){ return null; } };
+let toastTimer = null;
+function toast(msg){
+  const t = $("toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=> t.classList.remove("on"), 2600);
+}
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function mostrarTela(id){
+  ["t-entrar","t-senha","t-config","app"].forEach(t => $(t).classList.toggle("hidden", t !== id));
+}
+
+/* ======================= CHAVE GUARDADA NO APARELHO ======================= */
+function bd(op, chave, valor){
+  return new Promise(res=>{
+    if(typeof indexedDB === "undefined") return res(null);
+    const req = indexedDB.open("fpm", 1);
+    req.onupgradeneeded = ()=> req.result.createObjectStore("kv");
+    req.onerror = ()=> res(null);
+    req.onsuccess = ()=>{
+      try{
+        const tx = req.result.transaction("kv", op === "ler" ? "readonly" : "readwrite");
+        const st = tx.objectStore("kv");
+        const r = op === "ler" ? st.get(chave) : (op === "apagar" ? st.delete(chave) : st.put(valor, chave));
+        r.onsuccess = ()=> res(op === "ler" ? r.result : true);
+        r.onerror = ()=> res(null);
+      }catch(e){ res(null); }
+    };
+  });
+}
+
+/* ======================= LOGIN MICROSOFT (OAuth 2 + PKCE) ======================= */
+function b64url(bytes){
+  let s = ""; bytes.forEach(b => s += String.fromCharCode(b));
+  return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function aleatorio(n){ return b64url(crypto.getRandomValues(new Uint8Array(n))); }
+async function entrar(silencioso){
+  const verificador = aleatorio(32);
+  const desafio = b64url(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verificador))));
+  const estado = aleatorio(16);
+  lsSet(LS.pkce, JSON.stringify({v:verificador, s:estado, silencioso:!!silencioso}));
+  const q = new URLSearchParams({
+    client_id:CLIENT_ID, response_type:"code", redirect_uri:REDIRECT, response_mode:"query",
+    scope:ESCOPOS, code_challenge:desafio, code_challenge_method:"S256", state:estado
+  });
+  if(silencioso) q.set("prompt", "none");
+  const auth = lsJSON(LS.auth);
+  if(auth && auth.conta) q.set("login_hint", auth.conta);
+  location.assign(AUTORIDADE + "/authorize?" + q.toString());
+}
+async function pedirToken(params){
+  const corpo = new URLSearchParams(Object.assign({client_id:CLIENT_ID, scope:ESCOPOS}, params));
+  const r = await fetch(AUTORIDADE + "/token", {method:"POST", body:corpo,
+    headers:{"Content-Type":"application/x-www-form-urlencoded"}});
+  const j = await r.json().catch(()=> ({}));
+  if(!r.ok || !j.access_token){ const e = new Error(j.error || "token"); e.codigo = j.error; throw e; }
+  const antigo = lsJSON(LS.auth) || {};
+  let conta = antigo.conta || null;
+  if(j.id_token){
+    try{ const p = JSON.parse(decodeURIComponent(escape(atob(j.id_token.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))))); conta = p.preferred_username || p.email || conta; }catch(e){}
+  }
+  const auth = {access:j.access_token, expira:Date.now() + (j.expires_in || 3600) * 1000,
+                refresh:j.refresh_token || antigo.refresh || null, conta:conta};
+  lsSet(LS.auth, JSON.stringify(auth));
+  return auth;
+}
+/* volta do login: troca o código pelo token */
+async function tratarRetornoLogin(){
+  const q = new URLSearchParams(location.search);
+  if(!q.has("code") && !q.has("error")) return null;
+  const pk = lsJSON(LS.pkce); lsDel(LS.pkce);
+  history.replaceState(null, "", REDIRECT);
+  if(q.has("error")){
+    return {erro:q.get("error"), descricao:q.get("error_description") || "", silencioso:pk && pk.silencioso};
+  }
+  if(!pk || pk.s !== q.get("state")) return {erro:"estado", descricao:"Resposta de login inesperada. Tente de novo."};
+  try{
+    await pedirToken({grant_type:"authorization_code", code:q.get("code"), redirect_uri:REDIRECT, code_verifier:pk.v});
+    lsDel(LS.tentativa);
+    return {ok:true};
+  }catch(e){ return {erro:e.codigo || "token", descricao:"Não consegui concluir o login (" + (e.codigo || e.message) + ")."}; }
+}
+let precisaReconectar = false;
+async function token(){
+  const a = lsJSON(LS.auth);
+  if(!a) return null;
+  if(a.access && a.expira - 90000 > Date.now()) return a.access;
+  if(!a.refresh){ precisaReconectar = true; return null; }
+  try{
+    const n = await pedirToken({grant_type:"refresh_token", refresh_token:a.refresh});
+    precisaReconectar = false;
+    return n.access;
+  }catch(e){
+    if(e.codigo){ precisaReconectar = true; }     // o servidor recusou: precisa passar pelo login de novo
+    return null;
+  }
+}
+
+/* ======================= ONEDRIVE (Microsoft Graph) ======================= */
+async function graph(url, opt){
+  const t = await token();
+  if(!t){ const e = new Error("sem-token"); e.semToken = true; throw e; }
+  opt = opt || {};
+  opt.headers = Object.assign({Authorization:"Bearer " + t}, opt.headers || {});
+  opt.cache = "no-store";
+  return fetch(url, opt);
+}
+async function lerMeta(){
+  const r = await graph(GRAPH_ITEM);
+  if(r.status === 404) return null;
+  if(r.status === 401){ const a = lsJSON(LS.auth); if(a){ a.expira = 0; lsSet(LS.auth, JSON.stringify(a)); } }
+  if(!r.ok) throw new Error("graph " + r.status);
+  return r.json();
+}
+async function baixar(meta){
+  const r = await fetch(meta["@microsoft.graph.downloadUrl"], {cache:"no-store"});
+  if(!r.ok) throw new Error("download " + r.status);
+  return r.text();
+}
+/* grava só se o arquivo ainda for a versão que conhecemos (etag) */
+async function enviar(texto, etag){
+  const h = {"Content-Type":"application/json"};
+  if(etag) h["If-Match"] = etag; else h["If-None-Match"] = "*";
+  const r = await graph(GRAPH_ITEM + ":/content", {method:"PUT", headers:h, body:texto});
+  if(r.status === 412 || r.status === 409){ const e = new Error("conflito"); e.conflito = true; throw e; }
+  if(!r.ok) throw new Error("upload " + r.status);
+  return r.json();
+}
+
+/* ======================= ESTADO LOCAL ======================= */
+let state = null;
+let chaveCripto = null, saltAtual = null;   // null = arquivo sem senha
+let baseTexto = null, etag = null, sujo = false, ultimaSinc = null;
+let ano = new Date().getFullYear();
+const hoje = new Date();
+const ANO_HOJE = hoje.getFullYear(), MES_HOJE = hoje.getMonth();
+
+async function envelope(texto){
+  if(!chaveCripto) return texto;
+  return JSON.stringify(await cifrarTexto(texto, chaveCripto, saltAtual));
+}
+async function abrirEnvelope(bruto){
+  const obj = JSON.parse(bruto);
+  if(!obj || !obj.cifrado) return obj;
+  if(!chaveCripto) throw new Error("sem-chave");
+  const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:B64.para(obj.iv)}, chaveCripto, B64.para(obj.dados));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function saltDe(bruto){ try{ const o = JSON.parse(bruto); return o && o.cifrado ? o.salt : null; }catch(e){ return null; } }
+function mesmoSalt(b64){ return saltAtual ? B64.de(saltAtual) === b64 : !b64; }
+
+let seqLocal = 0;
+async function gravarLocal(gravarBase){
+  const seq = ++seqLocal;
+  const meta = JSON.stringify({etag:etag, sujo:sujo, ultima:ultimaSinc});
+  const bTxt = gravarBase ? baseTexto : null;
+  const t = await envelope(JSON.stringify(state));
+  if(bTxt !== null) lsSet(LS.base, await envelope(bTxt));
+  if(seq !== seqLocal) return;              // uma gravação mais nova já vem aí
+  lsSet(LS.local, t);
+  lsSet(LS.meta, meta);
+}
+/* toda alteração feita pelo usuário passa por aqui */
+let timerSinc = null;
+function salvar(){
+  sujo = true;
+  gravarLocal(false);
+  mostrarSync();
+  clearTimeout(timerSinc);
+  timerSinc = setTimeout(sincronizar, 1500);
+}
+
+/* ======================= SINCRONIZAÇÃO ======================= */
+let sincronizando = false, deNovo = false, statusSync = "—", erroSinc = null;
+async function sincronizar(){
+  if(!state) return;
+  if(sincronizando){ deNovo = true; return; }
+  sincronizando = true; erroSinc = null; mostrarSync();
+  try{
+    for(let tentativa = 0; tentativa < 4; tentativa++){
+      const meta = await lerMeta();
+      if(!meta){
+        // o arquivo sumiu da pasta do app: recria com o que está aqui
+        const txt = await textoArquivo(state);
+        const r = await enviar(txt, null);
+        aposEnvio(r, JSON.stringify(state)); break;
+      }
+      if(meta.eTag === etag){
+        if(!sujo) break;
+        const enviado = JSON.stringify(state);
+        try{ const r = await enviar(await textoArquivo(state), etag); aposEnvio(r, enviado); break; }
+        catch(e){ if(e.conflito) continue; throw e; }
+      }
+      // há versão nova no OneDrive
+      const bruto = await baixar(meta);
+      const salt = saltDe(bruto);
+      if(!mesmoSalt(salt)){
+        if(salt){ erroSinc = "senha"; precisaSenhaNova(bruto, meta); break; }
+        chaveCripto = null; saltAtual = null; await bd("apagar", "chave");   // a senha foi removida no computador
+      }
+      const remoto = normaliza(await abrirEnvelope(bruto));
+      const remotoTxt = JSON.stringify(remoto);
+      if(!sujo){
+        state = remoto; baseTexto = remotoTxt; etag = meta.eTag;
+        ultimaSinc = new Date().toISOString();
+        await gravarLocal(true); desenhar(); break;
+      }
+      const base = baseTexto ? JSON.parse(baseTexto) : remoto;
+      const junto = normaliza(mesclar(base, JSON.parse(JSON.stringify(state)), remoto));
+      const juntoTxt = JSON.stringify(junto);
+      state = junto; desenhar();
+      if(juntoTxt === remotoTxt){
+        baseTexto = remotoTxt; etag = meta.eTag; sujo = false;
+        ultimaSinc = new Date().toISOString(); await gravarLocal(true); break;
+      }
+      try{ const r = await enviar(await textoArquivo(junto), meta.eTag); aposEnvio(r, juntoTxt); break; }
+      catch(e){ if(e.conflito){ baseTexto = remotoTxt; etag = meta.eTag; continue; } throw e; }
+    }
+  }catch(e){
+    erroSinc = e.semToken ? (precisaReconectar ? "reconectar" : "offline") : (navigator.onLine === false ? "offline" : "falha");
+    if(!e.semToken) console.warn(e);
+  }
+  sincronizando = false;
+  mostrarSync(); mostrarAviso();
+  if(deNovo){ deNovo = false; setTimeout(sincronizar, 300); }
+}
+async function textoArquivo(obj){
+  if(!chaveCripto) return JSON.stringify(obj, null, 2);
+  return JSON.stringify(await cifrarTexto(JSON.stringify(obj), chaveCripto, saltAtual), null, 2);
+}
+function aposEnvio(resp, enviado){
+  etag = resp.eTag; baseTexto = enviado;
+  sujo = JSON.stringify(state) !== enviado;
+  ultimaSinc = new Date().toISOString();
+  gravarLocal(true);
+}
+function mostrarSync(){
+  const b = $("sync"); if(!b) return;
+  let cls = "", txt = "";
+  if(sincronizando){ cls = "gira"; txt = "sincronizando"; }
+  else if(erroSinc === "reconectar"){ cls = "erro"; txt = "reconectar"; }
+  else if(erroSinc === "senha"){ cls = "erro"; txt = "senha mudou"; }
+  else if(erroSinc){ cls = "pend"; txt = sujo ? "não enviado" : "sem conexão"; }
+  else if(sujo){ cls = "pend"; txt = "enviando…"; }
+  else if(ultimaSinc){
+    cls = "ok";
+    txt = "em dia " + new Date(ultimaSinc).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"});
+  } else txt = "—";
+  b.className = "sync " + cls;
+  b.querySelector("span").textContent = txt;
+}
+function mostrarAviso(){
+  const a = $("aviso");
+  if(erroSinc === "reconectar"){
+    a.innerHTML = "<span>A conexão com o OneDrive expirou. Suas alterações estão guardadas aqui.</span><button id='av-rec'>Reconectar</button>";
+    a.classList.remove("hidden");
+    $("av-rec").onclick = ()=> entrar(false);
+  } else if(erroSinc === "senha"){
+    a.innerHTML = "<span>A senha dos dados foi trocada no computador.</span><button id='av-sen'>Digitar</button>";
+    a.classList.remove("hidden");
+    $("av-sen").onclick = ()=> precisaSenhaNova(null, null, true);
+  } else a.classList.add("hidden");
+}
+$("sync").addEventListener("click", ()=>{
+  if(erroSinc === "reconectar") return entrar(false);
+  sincronizar();
+});
+
+/* ======================= SENHA ======================= */
+let pendenteSenha = null;
+function precisaSenhaNova(bruto, meta, abrir){
+  if(bruto) pendenteSenha = {bruto:bruto, meta:meta};
+  if(!abrir) return;
+  pedirSenha("A senha dos dados foi trocada no computador. Digite a nova senha.", async function(senha, lembrar){
+    const p = pendenteSenha; if(!p){ mostrarTela("app"); return true; }
+    const env = JSON.parse(p.bruto);
+    const r = await decifrarEnvelope(env, senha);
+    const remoto = normaliza(JSON.parse(r.texto));
+    // alterações locais ainda não enviadas são mescladas com a versão nova
+    const base = baseTexto ? JSON.parse(baseTexto) : remoto;
+    chaveCripto = r.chave; saltAtual = r.salt;
+    await guardarChave(lembrar);
+    state = sujo ? normaliza(mesclar(base, state, remoto)) : remoto;
+    baseTexto = JSON.stringify(remoto); etag = p.meta.eTag; pendenteSenha = null; erroSinc = null;
+    await gravarLocal(true);
+    mostrarTela("app"); desenhar(); mostrarAviso();
+    if(sujo) sincronizar();
+    return true;
+  });
+}
+async function guardarChave(lembrar){
+  if(lembrar && chaveCripto) await bd("gravar", "chave", {chave:chaveCripto, salt:B64.de(saltAtual)});
+  else await bd("apagar", "chave");
+}
+let acaoSenha = null;
+function pedirSenha(texto, acao){
+  $("senha-txt").textContent = texto;
+  $("senha-erro").textContent = "";
+  $("senha-inp").value = "";
+  acaoSenha = acao;
+  mostrarTela("t-senha");
+  setTimeout(()=> $("senha-inp").focus(), 80);
+}
+async function confirmarSenha(){
+  const s = $("senha-inp").value;
+  if(!s){ $("senha-erro").textContent = "Digite a senha."; return; }
+  $("senha-ok").disabled = true; $("senha-ok").textContent = "Abrindo…";
+  try{ await acaoSenha(s, $("senha-lembrar").checked); }
+  catch(e){ $("senha-erro").textContent = "Senha incorreta."; $("senha-inp").select(); }
+  $("senha-ok").disabled = false; $("senha-ok").textContent = "Abrir";
+}
+$("senha-ok").addEventListener("click", confirmarSenha);
+$("senha-inp").addEventListener("keydown", e=>{ if(e.key === "Enter") confirmarSenha(); });
+
+/* ======================= INÍCIO ======================= */
+async function iniciar(){
+  $("b-entrar").onclick = ()=> entrar(false);
+  const ret = await tratarRetornoLogin();
+  const auth = lsJSON(LS.auth);
+
+  if(ret && ret.erro && !ret.silencioso){
+    mostrarTela("t-entrar");
+    $("entrar-erro").textContent = ret.descricao || ret.erro;
+    return;
+  }
+  if(!auth){ mostrarTela("t-entrar"); return; }
+
+  // dados já guardados neste aparelho: abre na hora e sincroniza depois
+  const localBruto = lsGet(LS.local);
+  const meta = lsJSON(LS.meta) || {};
+  etag = meta.etag || null; sujo = !!meta.sujo; ultimaSinc = meta.ultima || null;
+  if(localBruto){
+    const salvo = await bd("ler", "chave");
+    const saltLocal = saltDe(localBruto);
+    if(saltLocal && salvo && salvo.salt === saltLocal){
+      chaveCripto = salvo.chave; saltAtual = B64.para(salvo.salt);
+      try{ await abrirLocal(localBruto); return aposAbrir(ret); }catch(e){ chaveCripto = null; saltAtual = null; }
+    }
+    if(!saltLocal){ await abrirLocal(localBruto); return aposAbrir(ret); }
+    pedirSenha("Digite a senha dos seus dados — a mesma que você usa no computador.", async function(senha, lembrar){
+      const r = await decifrarEnvelope(JSON.parse(localBruto), senha);
+      chaveCripto = r.chave; saltAtual = r.salt;
+      await guardarChave(lembrar);
+      await abrirLocal(localBruto);
+      aposAbrir(ret);
+      return true;
+    });
+    return;
+  }
+  // primeira vez neste aparelho: busca o arquivo no OneDrive
+  await primeiraCarga();
+}
+async function abrirLocal(localBruto){
+  state = normaliza(await abrirEnvelope(localBruto));
+  const b = lsGet(LS.base);
+  if(b){ try{ baseTexto = JSON.stringify(normaliza(await abrirEnvelope(b))); }catch(e){ baseTexto = null; } }
+}
+function aposAbrir(ret){
+  mostrarTela("app"); desenhar(); mostrarSync();
+  sincronizar().then(()=>{
+    // o acesso venceu: tenta renovar em silêncio (uma vez por hora no máximo)
+    if(erroSinc === "reconectar" && !(ret && ret.silencioso)){
+      const ult = Number(lsGet(LS.tentativa)) || 0;
+      if(Date.now() - ult > 3600000){ lsSet(LS.tentativa, String(Date.now())); entrar(true); }
+    }
+  });
+}
+async function primeiraCarga(){
+  mostrarTela("t-config");
+  $("cfg-erro").textContent = "Procurando o arquivo…";
+  let meta;
+  try{ meta = await lerMeta(); }
+  catch(e){
+    if(e.semToken){ mostrarTela("t-entrar"); $("entrar-erro").textContent = "Entre de novo com a sua conta."; return; }
+    $("cfg-erro").textContent = "Não consegui falar com o OneDrive. Verifique a internet e toque em Procurar de novo.";
+    return;
+  }
+  if(!meta){ $("cfg-erro").textContent = ""; return; }
+  $("cfg-erro").textContent = "";
+  const bruto = await baixar(meta);
+  await abrirRemoto(bruto, meta.eTag);
+}
+async function abrirRemoto(bruto, novoEtag){
+  const obj = JSON.parse(bruto);
+  const concluir = async function(dados){
+    state = normaliza(dados);
+    baseTexto = JSON.stringify(state); etag = novoEtag; sujo = false;
+    ultimaSinc = new Date().toISOString();
+    await gravarLocal(true);
+    mostrarTela("app"); desenhar(); mostrarSync();
+  };
+  if(!obj.cifrado){ chaveCripto = null; saltAtual = null; return concluir(obj); }
+  pedirSenha("Digite a senha dos seus dados — a mesma que você usa no computador.", async function(senha, lembrar){
+    const r = await decifrarEnvelope(obj, senha);
+    chaveCripto = r.chave; saltAtual = r.salt;
+    await guardarChave(lembrar);
+    await concluir(JSON.parse(r.texto));
+    return true;
+  });
+}
+$("cfg-de-novo").addEventListener("click", primeiraCarga);
+$("cfg-enviar").addEventListener("click", ()=> $("cfg-arquivo").click());
+$("cfg-arquivo").addEventListener("change", async ()=>{
+  const f = $("cfg-arquivo").files[0]; if(!f) return;
+  $("cfg-erro").textContent = "Enviando…";
+  try{
+    const txt = await f.text();
+    const obj = JSON.parse(txt);
+    if(!obj || !(obj.cifrado || obj.anos)) throw new Error("formato");
+    const r = await enviar(txt, null);
+    $("cfg-erro").textContent = "";
+    await abrirRemoto(txt, r.eTag);
+  }catch(e){
+    $("cfg-erro").textContent = e.conflito ? "Já existe um arquivo na pasta do app. Toque em Procurar de novo."
+                                           : "Não consegui enviar esse arquivo.";
+  }
+  $("cfg-arquivo").value = "";
+});
+
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState === "visible" && state) sincronizar(); });
+window.addEventListener("online", ()=>{ if(state) sincronizar(); });
+setInterval(()=>{ if(state && document.visibilityState === "visible") sincronizar(); }, 120000);
+
+/* ======================= NAVEGAÇÃO ======================= */
+let aba = "mes";
+let mesVis = MES_HOJE;
+let filtro = "todos";
+function mesPadraoCartao(){ let m = MES_HOJE + 1, y = ANO_HOJE; if(m > 11){ m = 0; y++; } return {ano:y, mes:m}; }
+let cart = mesPadraoCartao();
+
+Array.prototype.forEach.call(document.querySelectorAll(".abas button"), b=>{
+  b.addEventListener("click", ()=>{ aba = b.dataset.aba; desenhar(); window.scrollTo(0,0); });
+});
+Array.prototype.forEach.call(document.querySelectorAll("[data-mes]"), b=>{
+  b.addEventListener("click", ()=>{
+    mesVis += Number(b.dataset.mes);
+    if(mesVis < 0){ mesVis = 11; ano--; } if(mesVis > 11){ mesVis = 0; ano++; }
+    desenhar();
+  });
+});
+$("mes-nome").addEventListener("click", ()=>{ ano = ANO_HOJE; mesVis = MES_HOJE; desenhar(); });
+Array.prototype.forEach.call(document.querySelectorAll("[data-ano]"), b=>{
+  b.addEventListener("click", ()=>{ ano += Number(b.dataset.ano); desenhar(); });
+});
+Array.prototype.forEach.call(document.querySelectorAll("[data-mc]"), b=>{
+  b.addEventListener("click", ()=>{
+    cart.mes += Number(b.dataset.mc);
+    if(cart.mes < 0){ cart.mes = 11; cart.ano--; } if(cart.mes > 11){ cart.mes = 0; cart.ano++; }
+    desenhar();
+  });
+});
+Array.prototype.forEach.call(document.querySelectorAll("#mes-filtro button"), b=>{
+  b.addEventListener("click", ()=>{ filtro = b.dataset.f; desenhar(); });
+});
+$("fab").addEventListener("click", ()=> folhaLancamento(null));
+
+function desenhar(){
+  if(!state) return;
+  getAno(ano, true);
+  estenderFixas(ano);
+  $("v-mes").classList.toggle("hidden", aba !== "mes");
+  $("v-fluxo").classList.toggle("hidden", aba !== "fluxo");
+  $("v-cartao").classList.toggle("hidden", aba !== "cartao");
+  $("fab").classList.toggle("hidden", aba !== "mes");
+  Array.prototype.forEach.call(document.querySelectorAll(".abas button"), b=> b.classList.toggle("on", b.dataset.aba === aba));
+  $("titulo").textContent = aba === "mes" ? "Conta corrente" : (aba === "fluxo" ? "Fluxo de caixa" : "Cartão de crédito");
+  if(aba === "mes") desenharMes();
+  else if(aba === "fluxo") desenharFluxo();
+  else desenharCartao();
+}
+
+/* ======================= ABA: LANÇAMENTOS DO MÊS ======================= */
+function desenharMes(){
+  const y = ano, m = mesVis;
+  const mm = getMes(y, m, true);
+  $("mes-nome").innerHTML = MESES[m] + " " + y +
+    "<small>" + (y === ANO_HOJE && m === MES_HOJE ? "mês atual" : "toque para voltar ao mês atual") + "</small>";
+  Array.prototype.forEach.call(document.querySelectorAll("#mes-filtro button"), b=> b.classList.toggle("on", b.dataset.f === filtro));
+
+  const r = resultado(y, m);
+  const si = saldoInicial(y, m);
+  $("mes-resumo").innerHTML =
+    '<div class="card">' +
+      '<div class="hero"><div class="rot">Saldo atual</div>' +
+        '<div class="val num">' + fmt(si + r.recEfet - r.despEfet) + '</div>' +
+        '<div class="dica">' + (r.pendentes ? r.pendentes + (r.pendentes === 1 ? " lançamento a marcar" : " lançamentos a marcar") : "tudo do mês já efetivado") + '</div></div>' +
+      '<div class="kv"><span>Saldo inicial</span><b>' + fmt(si) + '</b></div>' +
+      '<div class="kv"><span>Receitas</span><b class="p">' + fmt(r.receitas) + '</b></div>' +
+      '<div class="kv"><span>Despesas</span><b class="n">' + fmt(r.despesas) + '</b></div>' +
+      '<div class="kv total"><span>Saldo final previsto</span><b>' + fmt(si + r.resultado) + '</b></div>' +
+    '</div>';
+
+  const box = $("mes-secoes");
+  box.innerHTML = "";
+  SECOES.forEach(sec=>{
+    const card = document.createElement("div");
+    card.className = "card";
+    const t = totaisSecao(y, m, sec.id);
+    card.innerHTML = '<header><h3>' + sec.nome + '</h3><span class="sub num">' +
+      (t.rec ? '<span class="p">' + fmt(t.rec) + '</span> · ' : "") + '<span class="n">' + fmt(t.desp) + '</span></span></header>';
+    let n = 0;
+    entradasMes(mm, sec.id).forEach(e=>{
+      if(e.k === "f"){
+        const v = faturaValor(y, m);
+        if(filtro === "pend" && (mm.fatura.efetivado || !v)) return;
+        card.appendChild(linhaFatura(mm, y, m)); n++;
+      } else {
+        if(filtro === "pend" && (e.l.efetivado || !(Number(e.l.valor) || 0))) return;
+        card.appendChild(linhaLanc(e.l, y, m)); n++;
+      }
+    });
+    if(!n){
+      const v = document.createElement("div"); v.className = "vazio";
+      v.textContent = filtro === "pend" ? "Nada a pagar ou receber aqui." : "Nenhum lançamento neste mês.";
+      card.appendChild(v);
+    }
+    if(sec.id === "terceiros"){
+      const pos = posicaoTerceiros(y, m);
+      const d = document.createElement("div"); d.className = "rodape";
+      d.innerHTML = "<span>" + (Math.abs(pos) < 0.005 ? "Nada em aberto" : (pos > 0 ? "Em aberto · a receber" : "Em aberto · a repassar")) +
+                    "</span><b class='num'>" + fmt(Math.abs(pos)) + "</b>";
+      card.appendChild(d);
+    }
+    box.appendChild(card);
+  });
+}
+function entradasMes(mm, secId){
+  const ent = mm.lancamentos.filter(l => l.secao === secId).map(l => ({k:"l", l:l}));
+  if(secId === "geral"){
+    let pos = Number(mm.fatura.ordem); if(!isFinite(pos)) pos = 0;
+    ent.splice(Math.max(0, Math.min(pos, ent.length)), 0, {k:"f"});
+  }
+  return ent;
+}
+function marcador(on, aoMudar, rotulo){
+  const b = document.createElement("button");
+  b.className = "chk" + (on ? " on" : "");
+  b.setAttribute("role", "checkbox"); b.setAttribute("aria-checked", on ? "true" : "false");
+  b.setAttribute("aria-label", rotulo);
+  b.innerHTML = "<span></span>";
+  b.addEventListener("click", aoMudar);
+  return b;
+}
+function linhaLanc(l, y, m){
+  const row = document.createElement("div");
+  row.className = "lin" + (l.efetivado ? " feito" : "");
+  const rec = l.tipo === "receita";
+  row.appendChild(marcador(!!l.efetivado, ()=>{
+    l.efetivado = !l.efetivado; salvar(); desenhar();
+    toast((l.desc || "Lançamento") + (l.efetivado ? (rec ? " marcado como recebido." : " marcado como pago.") : " desmarcado."));
+  }, (rec ? "Recebido: " : "Pago: ") + (l.desc || "")));
+  const corpo = document.createElement("button");
+  corpo.className = "corpo";
+  const serie = l.serieId ? state.series[l.serieId] : null;
+  let tags = "";
+  if(serie && serie.tipo === "parcelada") tags += '<span class="tag parc">' + (l.parcela || 1) + "/" + (l.parcelas || 1) + "</span>";
+  else if(serie) tags += '<span class="tag fixa">fixa</span>';
+  if(l.agendado) tags += '<span class="tag">agendado</span>';
+  if(l.debito) tags += '<span class="tag">déb. aut.</span>';
+  const v = Number(l.valor) || 0;
+  corpo.innerHTML = '<div class="txt"><div class="desc">' + (esc(l.desc) || '<i style="color:var(--ink-3)">sem descrição</i>') + '</div>' +
+    (tags ? '<div class="tags">' + tags + "</div>" : "") + "</div>" +
+    '<div class="val ' + (v ? (rec ? "p" : "n") : "") + '">' + (v ? (rec ? "+" : "−") + fmt(v) : "—") + "</div>";
+  corpo.addEventListener("click", ()=> folhaLancamento({id:l.id, y:y, m:m}));
+  row.appendChild(corpo);
+  return row;
+}
+function linhaFatura(mm, y, m){
+  const row = document.createElement("div");
+  row.className = "lin" + (mm.fatura.efetivado ? " feito" : "");
+  const fechada = mm.fatura.real !== null && mm.fatura.real !== undefined;
+  const v = faturaValor(y, m);
+  row.appendChild(marcador(!!mm.fatura.efetivado, ()=>{
+    mm.fatura.efetivado = !mm.fatura.efetivado; salvar(); desenhar();
+    toast("Fatura do cartão " + (mm.fatura.efetivado ? "marcada como paga." : "desmarcada."));
+  }, "Fatura paga"));
+  const corpo = document.createElement("button");
+  corpo.className = "corpo";
+  let tags = '<span class="tag orc">' + (fechada ? "fatura fechada" : "orçamento") + "</span>";
+  if(mm.fatura.agendado) tags += '<span class="tag">agendado</span>';
+  if(state.cartao.debito) tags += '<span class="tag">déb. aut.</span>';
+  corpo.innerHTML = '<div class="txt"><div class="desc"><b>Cartão de crédito</b></div><div class="tags">' + tags + "</div></div>" +
+    '<div class="val n">' + (v ? "−" + fmt(v) : "—") + "</div>";
+  corpo.addEventListener("click", ()=> folhaFatura(y, m));
+  row.appendChild(corpo);
+  return row;
+}
+
+/* ======================= FOLHAS (formulários) ======================= */
+function abrirFolha(html, montar){
+  const f = $("folha"), v = $("veu");
+  f.innerHTML = '<div class="puxador"></div>' + html;
+  f.classList.remove("hidden"); v.classList.remove("hidden");
+  requestAnimationFrame(()=>{ f.classList.add("on"); v.classList.add("on"); });
+  if(montar) montar(f);
+}
+function fecharFolha(){
+  const f = $("folha"), v = $("veu");
+  f.classList.remove("on"); v.classList.remove("on");
+  setTimeout(()=>{ f.classList.add("hidden"); v.classList.add("hidden"); f.innerHTML = ""; }, 220);
+}
+$("veu").addEventListener("click", fecharFolha);
+function segmento(f, nome, aoMudar){
+  const seg = f.querySelector('[data-seg="' + nome + '"]');
+  const botoes = seg.querySelectorAll("button");
+  Array.prototype.forEach.call(botoes, b=> b.addEventListener("click", ()=>{
+    Array.prototype.forEach.call(botoes, x=> x.classList.remove("on"));
+    b.classList.add("on");
+    if(aoMudar) aoMudar(b.dataset.v);
+  }));
+  return ()=>{ const on = seg.querySelector("button.on"); return on ? on.dataset.v : null; };
+}
+function segHTML(nome, ops, atual){
+  return '<div class="seg" data-seg="' + nome + '">' + ops.map(o =>
+    '<button type="button" data-v="' + o[0] + '" class="' + o[0] + (o[0] === atual ? " on" : "") + '">' + o[1] + "</button>").join("") + "</div>";
+}
+function acharLanc(id, y, m){
+  const mm = getMes(y, m, false);
+  return mm ? mm.lancamentos.find(l => l.id === id) || null : null;
+}
+function perguntarEscopo(titulo, texto, rotTodos, acao){
+  abrirFolha('<h2>' + esc(titulo) + '</h2><div class="sub">' + esc(texto) + '</div><div class="opcoes">' +
+    '<button data-e="so"><b>Somente neste mês</b><small>os demais meses ficam como estão</small></button>' +
+    '<button data-e="adiante"><b>Deste mês em diante</b><small>mantém os meses anteriores</small></button>' +
+    '<button data-e="todos"><b>' + rotTodos + '</b><small>do primeiro ao último</small></button></div>' +
+    '<div class="acoes"><button class="btn" data-cancelar>Cancelar</button></div>', f=>{
+      Array.prototype.forEach.call(f.querySelectorAll("[data-e]"), b=> b.addEventListener("click", ()=>{ acao(b.dataset.e); }));
+      f.querySelector("[data-cancelar]").addEventListener("click", fecharFolha);
+    });
+}
+
+/* novo lançamento (ref = null) ou edição de um existente (ref = {id, y, m}) */
+function folhaLancamento(ref){
+  const l = ref ? acharLanc(ref.id, ref.y, ref.m) : null;
+  if(ref && !l){ toast("Esse lançamento não existe mais."); desenhar(); return; }
+  const serie = l && l.serieId ? state.series[l.serieId] : null;
+  const rep = serie ? serie.tipo : "variavel";
+  const y0 = ref ? ref.y : ano, m0 = ref ? ref.m : mesVis;
+  let opsMes = "";
+  for(let k = -1; k <= 13; k++){
+    let yy = y0, mm2 = m0 + k;
+    while(mm2 < 0){ mm2 += 12; yy--; } while(mm2 > 11){ mm2 -= 12; yy++; }
+    opsMes += '<option value="' + yy + "-" + mm2 + '"' + (k === 0 ? " selected" : "") + ">" + MESES[mm2] + " " + yy + "</option>";
+  }
+  const valorIni = l && (Number(l.valor) || 0) ? (l.raw || String(l.valor)).replace(".", ",") : "";
+  abrirFolha(
+    '<h2>' + (l ? "Editar lançamento" : "Novo lançamento") + '</h2>' +
+    (l ? '<div class="sub">' + MESES[m0] + " " + y0 + (serie ? " · " + (rep === "fixa" ? "fixa" : "parcela " + l.parcela + " de " + l.parcelas) : "") + '</div>' : "") +
+    segHTML("tipo", [["despesa","Despesa"],["receita","Receita"]], l ? l.tipo : "despesa") +
+    '<label class="rot" for="f-valor">Valor' + (rep === "parcelada" ? " da parcela" : "") + '</label>' +
+    '<input class="campo valor" id="f-valor" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" value="' + esc(valorIni) + '">' +
+    '<div class="dica">Aceita contas, como 120+35,90.</div>' +
+    '<label class="rot" for="f-desc">Descrição</label>' +
+    '<input class="campo" id="f-desc" type="text" autocomplete="off" placeholder="Ex.: Mercado" value="' + esc(l ? l.desc : "") + '">' +
+    '<label class="rot">Seção</label>' +
+    (l ? '<div class="dica" style="margin-top:0">' + SECOES.find(s => s.id === l.secao).nome + "</div>"
+       : segHTML("secao", SECOES.map(s => [s.id, s.nome]), "geral")) +
+    (l ? "" : '<label class="rot" for="f-mes">Mês</label><select class="campo" id="f-mes">' + opsMes + "</select>") +
+    '<label class="rot">Repetição</label>' +
+    segHTML("rep", [["variavel","Variável"],["fixa","Fixa"],["parcelada","Parcelada"]], rep) +
+    '<div id="f-parc" class="' + (rep === "parcelada" ? "" : "hidden") + '">' +
+      '<label class="rot" for="f-n">Número de parcelas</label>' +
+      '<input class="campo" id="f-n" type="number" inputmode="numeric" min="1" max="360" value="' + (serie && rep === "parcelada" ? (l.parcelas || "") : "") + '">' +
+    "</div>" +
+    '<div class="dica" id="f-rep-dica"></div>' +
+    '<label class="interr"><span id="f-efet-rot">Já pago</span><input type="checkbox" id="f-efet"' + (l && l.efetivado ? " checked" : "") + "></label>" +
+    '<div class="erro" id="f-erro"></div>' +
+    '<div class="acoes">' + (l ? '<button class="btn perigo" id="f-del">Excluir</button>' : "") +
+      '<button class="btn" id="f-cancelar">Cancelar</button><button class="btn pri" id="f-ok">Salvar</button></div>',
+    f=>{
+      const dicaRep = ()=>{
+        const r = lerRep();
+        $("f-parc").classList.toggle("hidden", r !== "parcelada");
+        $("f-rep-dica").textContent = r === "variavel" ? "Aparece só no mês escolhido."
+          : (r === "fixa" ? "Repete neste mês e em todos os seguintes, com o mesmo valor."
+                          : "Repete pelo número de parcelas, com a etiqueta 1/n. O valor informado é o de cada parcela.");
+        document.querySelector('label[for="f-valor"]').textContent = "Valor" + (r === "parcelada" ? " da parcela" : "");
+      };
+      const lerTipo = segmento(f, "tipo", t=>{ $("f-efet-rot").textContent = t === "receita" ? "Já recebido" : "Já pago"; });
+      const lerSecao = l ? (()=> l.secao) : segmento(f, "secao");
+      const lerRep = segmento(f, "rep", dicaRep);
+      dicaRep();
+      $("f-efet-rot").textContent = lerTipo() === "receita" ? "Já recebido" : "Já pago";
+      $("f-cancelar").addEventListener("click", fecharFolha);
+      if(!l) setTimeout(()=> $("f-valor").focus(), 250);
+      if(l) $("f-del").addEventListener("click", ()=> excluirLanc(ref));
+      $("f-ok").addEventListener("click", ()=>{
+        const erro = msg => { $("f-erro").textContent = msg; };
+        const txt = $("f-valor").value.trim();
+        const v = txt ? evalExpr(txt) : 0;
+        if(!isFinite(v)) return erro("Valor inválido.");
+        const valor = Math.abs(v);
+        const tipo = lerTipo(), r = lerRep();
+        let n = null;
+        if(r === "parcelada"){
+          n = parseInt($("f-n").value, 10);
+          if(!(n >= 1)) return erro("Informe em quantas parcelas.");
+          n = Math.min(360, n);
+        }
+        const desc = $("f-desc").value.trim();
+        const efet = $("f-efet").checked;
+        if(!l){
+          const [yy, mm2] = $("f-mes").value.split("-").map(Number);
+          const novo = {id:uid(), secao:lerSecao(), desc:desc, tipo:tipo, valor:valor, raw:txt, efetivado:false,
+                        serieId:null, tipoRec:"variavel", parcela:null, parcelas:null, agendado:false, debito:false, nota:""};
+          getMes(yy, mm2, true).lancamentos.push(novo);
+          const anoAntes = ano; ano = yy;          // criarSerie usa o ano visível para estender as fixas
+          if(r === "fixa") criarSerie(novo, yy, mm2, "fixa");
+          else if(r === "parcelada") criarSerie(novo, yy, mm2, "parcelada", n);
+          ano = anoAntes;
+          novo.efetivado = efet;                   // só a ocorrência deste mês
+          salvar(); fecharFolha();
+          ano = yy; mesVis = mm2; desenhar();
+          toast("Lançamento incluído em " + MESES[mm2] + ".");
+          return;
+        }
+        editarLanc(ref, {desc:desc, tipo:tipo, valor:valor, raw:txt, rep:r, n:n, efet:efet});
+      });
+    });
+}
+function editarLanc(ref, d){
+  const l = acharLanc(ref.id, ref.y, ref.m);
+  if(!l){ fecharFolha(); desenhar(); return; }
+  const y = ref.y, m = ref.m;
+  const terminar = ()=>{ salvar(); fecharFolha(); desenhar(); toast("Alteração salva."); };
+
+  l.efetivado = d.efet;
+  // descrição: vale para a rubrica inteira, como no computador
+  if((l.desc || "") !== d.desc){
+    l.desc = d.desc;
+    if(l.serieId && state.series[l.serieId]){
+      state.series[l.serieId].desc = d.desc;
+      ocorrencias(l.serieId).forEach(o=>{ o.l.desc = d.desc; });
+    }
+  }
+  // repetição
+  const serie = l.serieId ? state.series[l.serieId] : null;
+  const repAtual = serie ? serie.tipo : "variavel";
+  const anoAntes = ano; ano = y;
+  if(d.rep !== repAtual || (d.rep === "parcelada" && d.n !== l.parcelas)){
+    if(d.rep === "variavel"){ if(serie) desfazerSerie(l, y, m); }
+    else if(d.rep === "fixa"){ if(serie) desfazerSerie(l, y, m); aplicarNoAvulso(l, d); criarSerie(l, y, m, "fixa"); }
+    else if(serie && serie.tipo === "parcelada"){ ajustarParcelas(l.serieId, d.n); }
+    else { if(serie) desfazerSerie(l, y, m); aplicarNoAvulso(l, d); criarSerie(l, y, m, "parcelada", d.n); }
+  }
+  ano = anoAntes;
+  // valor
+  const s2 = l.serieId ? state.series[l.serieId] : null;
+  const mudouValor = Math.abs((Number(l.valor) || 0) - d.valor) >= 0.005 || l.tipo !== d.tipo;
+  if(!mudouValor){ terminar(); return; }
+  const oc = s2 ? ocorrencias(l.serieId) : [];
+  if(!s2 || oc.length < 2){ aplicarNoAvulso(l, d); terminar(); return; }
+  if(oc.every(o => !(Number(o.l.valor) || 0))){ aplicarValor(l.serieId, y, m, "todos", d.valor, d.raw, d.tipo); terminar(); return; }
+  salvar();   // descrição/situação já mudaram; falta decidir onde vai o valor
+  perguntarEscopo("Onde aplicar o novo valor?",
+    "Esta rubrica é " + (s2.tipo === "fixa" ? "fixa" : "parcelada") + ". Novo valor: " + fmt(d.valor) + ".",
+    "Em todos os meses da rubrica", function(escopo){
+      const l2 = acharLanc(ref.id, y, m);
+      if(l2 && l2.serieId) aplicarValor(l2.serieId, y, m, escopo, d.valor, d.raw, d.tipo);
+      terminar();
+    });
+}
+function aplicarNoAvulso(l, d){ l.valor = d.valor; l.raw = d.raw; l.tipo = d.tipo; }
+function excluirLanc(ref){
+  const l = acharLanc(ref.id, ref.y, ref.m);
+  if(!l){ fecharFolha(); return; }
+  const mm = getMes(ref.y, ref.m, true);
+  const serie = l.serieId && state.series[l.serieId];
+  if(!serie || ocorrencias(l.serieId).length < 2){
+    abrirFolha('<h2>Excluir “' + esc(l.desc || "lançamento") + '”?</h2><div class="sub">' + MESES[ref.m] + " " + ref.y + '</div>' +
+      '<div class="acoes"><button class="btn" data-c>Cancelar</button><button class="btn perigo" style="flex:1" data-x>Excluir</button></div>', f=>{
+        f.querySelector("[data-c]").addEventListener("click", fecharFolha);
+        f.querySelector("[data-x]").addEventListener("click", ()=>{
+          const i = mm.lancamentos.indexOf(l); if(i >= 0) mm.lancamentos.splice(i, 1);
+          if(serie) delete state.series[l.serieId];
+          salvar(); fecharFolha(); desenhar(); toast("Lançamento excluído.");
+        });
+      });
+    return;
+  }
+  perguntarEscopo("Excluir “" + (l.desc || "rubrica") + "”", "Esta rubrica é " + serie.tipo + " e aparece em vários meses. O que excluir?",
+    "Todos os meses da rubrica", function(escopo){
+      excluirSerie(l.serieId, ref.y, ref.m, escopo);
+      salvar(); fecharFolha(); desenhar(); toast("Excluído.");
+    });
+}
+function folhaFatura(y, m){
+  const mm = getMes(y, m, true);
+  const orc = orcEfetivo(y, m);
+  const fechada = mm.fatura.real !== null && mm.fatura.real !== undefined;
+  abrirFolha('<h2>Cartão de crédito</h2><div class="sub">Fatura paga em ' + MESES[m] + " " + y + " · orçamento " + fmt(orc.valor) + "</div>" +
+    '<label class="rot" for="ff-valor">Valor real da fatura</label>' +
+    '<input class="campo valor" id="ff-valor" type="text" inputmode="decimal" placeholder="' + esc(fmt(orc.valor)) + '" value="' +
+      esc(fechada ? (mm.fatura.raw || String(mm.fatura.real)).replace(".", ",") : "") + '">' +
+    '<div class="dica">Depois que a fatura fechar, informe o valor real. Deixe vazio para usar o orçamento.</div>' +
+    '<label class="interr"><span>Já paga</span><input type="checkbox" id="ff-efet"' + (mm.fatura.efetivado ? " checked" : "") + "></label>" +
+    '<div class="erro" id="ff-erro"></div>' +
+    '<div class="acoes"><button class="btn" id="ff-c">Cancelar</button><button class="btn pri" id="ff-ok">Salvar</button></div>', f=>{
+      $("ff-c").addEventListener("click", fecharFolha);
+      $("ff-ok").addEventListener("click", ()=>{
+        const txt = $("ff-valor").value.trim();
+        if(txt){
+          const v = evalExpr(txt);
+          if(!isFinite(v)){ $("ff-erro").textContent = "Valor inválido."; return; }
+          mm.fatura.real = Math.abs(v); mm.fatura.raw = txt;
+        } else { mm.fatura.real = null; mm.fatura.raw = ""; }
+        mm.fatura.efetivado = $("ff-efet").checked;
+        salvar(); fecharFolha(); desenhar();
+      });
+    });
+}
+
+/* ======================= ABA: FLUXO DE CAIXA ======================= */
+let dadosGraf = null;
+function desenharFluxo(){
+  const dados = linhasAno(ano);
+  dadosGraf = dados;
+  $("fluxo-nome").textContent = String(ano);
+  const somaRes = dados.reduce((a, d) => a + d.resultado, 0);
+  $("fluxo-sub").innerHTML = "dez: <b class='num'>" + fmt(dados[11].final) + "</b>";
+  let h = '<div class="tab-ano"><div class="h">Mês</div><div class="h v">Resultado</div><div class="h v">Saldo final</div>';
+  dados.forEach(d=>{
+    const hj = ano === ANO_HOJE && d.mes === MES_HOJE ? " hoje" : "";
+    h += '<div class="m' + hj + '" data-m="' + d.mes + '">' + MESES[d.mes] + "</div>" +
+         '<div class="v' + hj + " " + (d.resultado < 0 ? "n" : (d.resultado > 0 ? "p" : "")) + '" data-m="' + d.mes + '">' + fmt(d.resultado) + "</div>" +
+         '<div class="v' + hj + (d.final < 0 ? " n" : "") + '" data-m="' + d.mes + '">' + fmt(d.final) + "</div>";
+  });
+  h += '<div class="m" style="font-weight:650">Ano</div><div class="v ' + (somaRes < 0 ? "n" : "p") + '" style="font-weight:650">' + fmt(somaRes) +
+       '</div><div class="v" style="font-weight:650">' + fmt(dados[11].final) + "</div></div>";
+  $("fluxo-tab").innerHTML = h;
+  Array.prototype.forEach.call($("fluxo-tab").querySelectorAll("[data-m]"), c=>{
+    c.style.cursor = "pointer";
+    c.addEventListener("click", ()=>{ mesVis = Number(c.dataset.m); aba = "mes"; desenhar(); window.scrollTo(0,0); });
+  });
+  desenharGrafico(dados);
+}
+function desenharGrafico(dados){
+  const box = $("graf"), dica = $("graf-dica");
+  Array.prototype.forEach.call(box.querySelectorAll("svg"), n => n.remove());
+  const W = Math.max(300, Math.round(box.clientWidth || 340)), H = 220, L = 50, R = 12, T = 14, B = 28;
+  const vals = dados.map(d => d.final);
+  let bMin = Math.min.apply(null, vals.concat([0])), bMax = Math.max.apply(null, vals.concat([0]));
+  if(bMax - bMin < 1){ bMax += 1; bMin -= 1; }
+  bMax += (bMax - bMin) * 0.08;
+  const bruto = (bMax - bMin) / 4;
+  const mag = Math.pow(10, Math.floor(Math.log(Math.abs(bruto) || 1) / Math.LN10));
+  let passo = mag * 10;
+  [1, 2, 2.5, 5, 10].some(k=>{ if(mag * k >= bruto){ passo = mag * k; return true; } return false; });
+  const min = Math.floor(bMin / passo) * passo, max = Math.ceil(bMax / passo) * passo;
+  const nTicks = Math.round((max - min) / passo);
+  const px = i => L + i * (W - L - R) / 11;
+  const py = v => T + (max - v) * (H - T - B) / (max - min);
+  const compacto = n => { const a = Math.abs(n);
+    if(a >= 1000000) return (n/1000000).toFixed(1).replace(".", ",") + " mi";
+    if(a >= 1000) return Math.round(n/1000) + " mil";
+    return String(Math.round(n)); };
+  let g = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Saldo final mês a mês">';
+  for(let i = 0; i <= nTicks; i++){
+    const v = min + passo * i, yy = py(v);
+    g += '<line x1="' + L + '" y1="' + yy + '" x2="' + (W-R) + '" y2="' + yy + '" stroke="var(--line)" stroke-width="1"/>';
+    g += '<text x="' + (L-8) + '" y="' + (yy+4) + '" text-anchor="end" font-size="11" fill="var(--ink-3)">' + compacto(v) + "</text>";
+  }
+  if(min < 0){
+    const y0 = py(0), base = H - B;
+    if(base > y0) g += '<rect x="' + L + '" y="' + y0 + '" width="' + (W-L-R) + '" height="' + (base-y0) + '" fill="var(--neg)" opacity="0.07"/>';
+    g += '<line x1="' + L + '" y1="' + y0 + '" x2="' + (W-R) + '" y2="' + y0 + '" stroke="var(--neg)" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.85"/>';
+  }
+  g += '<polyline points="' + dados.map((d,i)=> px(i) + "," + py(d.final)).join(" ") +
+       '" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  dados.forEach((d,i)=>{
+    g += '<circle cx="' + px(i) + '" cy="' + py(d.final) + '" r="4" fill="' + (d.resultado < 0 ? "var(--neg)" : "var(--accent)") +
+         '" stroke="var(--surface)" stroke-width="2"/>';
+  });
+  dados.forEach((d,i)=>{
+    if(W < 380 && i % 2 === 1) return;          // em tela estreita, meses alternados
+    g += '<text x="' + px(i) + '" y="' + (H-9) + '" text-anchor="middle" font-size="11" fill="var(--ink-3)">' + MESES_CURTO[i] + "</text>";
+  });
+  g += '<line id="graf-cruz" x1="0" y1="' + T + '" x2="0" y2="' + (H-B) + '" stroke="var(--line-strong)" stroke-width="1" opacity="0"/>';
+  g += "</svg>";
+  box.insertAdjacentHTML("beforeend", g);
+  const svg = box.querySelector("svg"), cruz = svg.querySelector("#graf-cruz");
+  const mostrarPonto = clientX=>{
+    const rs = svg.getBoundingClientRect(), rb = box.getBoundingClientRect();
+    const esc2 = rs.width / W;
+    const x = (clientX - rs.left) / esc2;
+    const i = Math.max(0, Math.min(11, Math.round((x - L) / ((W - L - R) / 11))));
+    const d = dados[i];
+    cruz.setAttribute("x1", px(i)); cruz.setAttribute("x2", px(i)); cruz.setAttribute("opacity", "1");
+    dica.innerHTML = MESES[i] + "<br>saldo final <b>" + fmt(d.final) + "</b><br>resultado <b>" + fmt(d.resultado) + "</b>";
+    const lg = dica.offsetWidth, alt = dica.offsetHeight;
+    let cx = (rs.left - rb.left) + px(i) * esc2;
+    cx = Math.min(Math.max(cx, lg / 2 + 6), rb.width - lg / 2 - 6);
+    const cy = (rs.top - rb.top) + py(d.final) * esc2;
+    const abaixo = cy - alt - 12 < 0;
+    dica.style.transform = abaixo ? "translate(-50%,14px)" : "translate(-50%,-112%)";
+    dica.style.left = cx + "px"; dica.style.top = cy + "px";
+    dica.classList.add("on");
+  };
+  const esconder = ()=>{ cruz.setAttribute("opacity", "0"); dica.classList.remove("on"); };
+  svg.addEventListener("pointerdown", e=> mostrarPonto(e.clientX));
+  svg.addEventListener("pointermove", e=>{ if(e.pointerType === "mouse" || e.buttons) mostrarPonto(e.clientX); });
+  svg.addEventListener("pointerleave", e=>{ if(e.pointerType === "mouse") esconder(); });
+  esconderGraf = esconder;
+}
+let esconderGraf = null;
+document.addEventListener("pointerdown", e=>{ if(esconderGraf && !$("graf").contains(e.target)) esconderGraf(); });
+window.addEventListener("resize", ()=>{ if(aba === "fluxo" && dadosGraf) desenharGrafico(dadosGraf); });
+
+/* ======================= ABA: CARTÃO — CALCULADORA ======================= */
+function diasTexto(d){ return d === null ? "" : (d > 1 ? d + " dias" : (d === 1 ? "amanhã" : (d === 0 ? "hoje" : "já fechou"))); }
+function desenharCartao(){
+  $("cart-nome").innerHTML = "Fatura de " + MESES[cart.mes] + " " + cart.ano + "<small>mês de vencimento</small>";
+  desenharCalc();
+  desenharListasCartao();
+}
+function desenharCalc(){
+  const y = cart.ano, m = cart.mes;
+  const c = calcularFatura(y, m);
+  const iso = dataFechamento(y, m);
+  const dias = diasAte(iso);
+  const diario = (dias !== null && dias > 0) ? c.disponivel / dias : null;
+  const kvx = (rot, val, expl, cls) => '<div class="kv' + (cls ? " " + cls : "") + '"><span>' + rot + "<small>" + expl + "</small></span><b>" + val + "</b></div>";
+  $("cart-calc").innerHTML =
+    '<div class="card">' +
+      '<div class="hero"><div class="rot">Gasto diário permitido</div>' +
+        '<div class="val num" style="' + (diario !== null && diario < 0 ? "color:var(--neg)" : "") + '">' + (diario === null ? "—" : fmt(diario)) + "</div>" +
+        '<div class="dica">até o fechamento · ' + diasTexto(dias) + "</div></div>" +
+      '<div class="kv"><span>Sobra do orçamento</span><b class="' + (c.disponivel < 0 ? "n" : "p") + '">' + fmt(c.disponivel) + "</b></div>" +
+      '<div class="kv"><span>Total previsto da fatura</span><b>' + fmt(c.total) + "</b></div>" +
+      '<div class="kv"><span>Orçamento</span><b>' + fmt(c.orcamento) + "</b></div>" +
+      '<div class="kv"><span>Fecha em</span><input type="date" id="c-fech" value="' + iso + '"></div>' +
+      '<details class="como"><summary>Como chegamos a esse valor</summary>' +
+        kvx("Compras variáveis", fmt(c.variaveis), "faturas em aberto + empenhado − fixas já lançadas") +
+        kvx("Fixas ou parceladas já lançadas", fmt(c.lancadas), "já estão dentro do valor da fatura") +
+        kvx("Fatura — total parcial", fmt(c.parcial), "o que a fatura já acumula hoje", "total") +
+        kvx("Fixas ou parceladas previstas", fmt(c.aPrever), "ainda devem entrar até o fechamento") +
+        kvx("Total previsto da fatura", fmt(c.total), "parcial + previstas − as em transição", "total") +
+      "</details>" +
+    "</div>";
+  $("c-fech").addEventListener("change", e=>{
+    const v = e.target.value;
+    mesCartao(y, m, true).fechamento = v || null;
+    const d = new Date(v + "T00:00:00");
+    if(!isNaN(d.getTime())) state.cartao.diaFechamento = d.getDate();
+    salvar(); desenharCalc();
+  });
+}
+function campoMoeda(obj, chave){
+  const inp = document.createElement("input");
+  inp.className = "moeda"; inp.type = "text"; inp.setAttribute("inputmode", "decimal");
+  const mostra = ()=>{ const v = Number(obj[chave]) || 0; inp.value = v ? fmt(v) : ""; };
+  mostra(); inp.placeholder = "R$ 0,00";
+  inp.addEventListener("focus", ()=>{ const v = Number(obj[chave]) || 0; inp.value = obj.raw ? obj.raw : (v ? String(v).replace(".", ",") : ""); setTimeout(()=> inp.select(), 0); });
+  inp.addEventListener("blur", ()=>{
+    const txt = inp.value.trim();
+    if(!txt){ obj[chave] = 0; obj.raw = ""; salvar(); mostra(); desenharCalc(); somasCartao(); return; }
+    const n = evalExpr(txt);
+    if(!isFinite(n)){ toast("Valor inválido: " + txt); mostra(); return; }
+    obj[chave] = n; obj.raw = txt;
+    salvar(); mostra(); desenharCalc(); somasCartao();
+  });
+  inp.addEventListener("keydown", e=>{ if(e.key === "Enter") inp.blur(); });
+  return inp;
+}
+function somasCartao(){
+  const c = calcularFatura(cart.ano, cart.mes);
+  const a = $("soma-fat"), b = $("soma-emp");
+  if(a) a.textContent = fmt(c.faturas);
+  if(b) b.textContent = fmt(c.empenhado);
+}
+function desenharListasCartao(){
+  const y = cart.ano, m = cart.mes;
+  const mm = mesCartao(y, m, true);
+  const c = calcularFatura(y, m);
+  const box = $("cart-listas");
+  box.innerHTML = "";
+
+  // faturas em aberto
+  const c1 = document.createElement("div"); c1.className = "card";
+  c1.innerHTML = '<header><h3>Faturas em aberto</h3><span class="sub num" id="soma-fat">' + fmt(c.faturas) + "</span></header>" +
+    '<div class="explica">O valor que cada fatura mostra hoje, ainda sem fechar.</div>';
+  state.cartao.cartoes.forEach(ct=>{
+    if(!mm.faturas[ct.id]) mm.faturas[ct.id] = {valor:0, raw:""};
+    const row = document.createElement("div"); row.className = "campo-lin";
+    const nome = document.createElement("div"); nome.className = "nome"; nome.textContent = ct.nome || "(sem nome)";
+    row.appendChild(nome); row.appendChild(campoMoeda(mm.faturas[ct.id], "valor"));
+    c1.appendChild(row);
+  });
+  box.appendChild(c1);
+
+  // empenhado
+  const c2 = document.createElement("div"); c2.className = "card";
+  c2.innerHTML = '<header><h3>Empenhado</h3><span class="sub num" id="soma-emp">' + fmt(c.empenhado) + "</span></header>" +
+    '<div class="explica">Compras variáveis já feitas que ainda não apareceram na fatura.</div>';
+  mm.empenhado.forEach(it=>{
+    const row = document.createElement("div"); row.className = "campo-lin";
+    const d = document.createElement("input"); d.className = "txt"; d.type = "text"; d.value = it.desc || ""; d.placeholder = "Descrição";
+    d.addEventListener("change", ()=>{ it.desc = d.value; salvar(); });
+    row.appendChild(d);
+    const cm = campoMoeda(it, "valor"); cm.dataset.emp = it.id;
+    row.appendChild(cm);
+    const x = document.createElement("button"); x.className = "x"; x.innerHTML = "&times;"; x.setAttribute("aria-label", "Excluir");
+    x.addEventListener("click", ()=>{
+      mm.empenhado = mm.empenhado.filter(e => e.id !== it.id);
+      salvar(); desenharCalc(); desenharListasCartao();
+    });
+    row.appendChild(x);
+    c2.appendChild(row);
+  });
+  const add = document.createElement("button"); add.className = "add"; add.textContent = "+ acrescentar compra";
+  add.addEventListener("click", ()=>{
+    const novo = {id:uid(), desc:"Compra " + (mm.empenhado.length + 1), valor:0, raw:""};
+    mm.empenhado.push(novo);
+    salvar(); desenharListasCartao();
+    const alvo = document.querySelector('[data-emp="' + novo.id + '"]');
+    if(alvo) alvo.focus();
+  });
+  c2.appendChild(add);
+  box.appendChild(c2);
+
+  // fixas e parceladas
+  const itens = comprasDoMes(y, m);
+  const c3 = document.createElement("div"); c3.className = "card";
+  c3.innerHTML = '<header><h3>Fixas e parceladas</h3><span class="sub num">' + itens.length + " itens · " + fmt(c.lancadas + c.transicao + c.previstas) + "</span></header>" +
+    '<div class="explica"><b>Lançada</b>: já está no valor da fatura. <b>Transição</b>: já comprada, ainda não apareceu. <b>Prevista</b>: ainda vai ser cobrada.</div>';
+  if(!itens.length){
+    const v = document.createElement("div"); v.className = "vazio";
+    v.textContent = "Nenhuma compra fixa ou parcelada nesta fatura.";
+    c3.appendChild(v);
+  }
+  itens.forEach(it=>{
+    const row = document.createElement("div"); row.className = "fx";
+    row.innerHTML = '<div class="l1"><span class="d">' + esc(it.compra.desc || "(sem descrição)") +
+      "<small>" + (it.parcela ? it.parcela + "/" + it.total : "fixa") + "</small></span><b>" + fmt(it.valor) + "</b></div>";
+    const seg = document.createElement("div"); seg.className = "seg";
+    ESTADOS.forEach(es=>{
+      const b = document.createElement("button");
+      b.className = es.id + (it.estado === es.id ? " on" : "");
+      b.textContent = es.rot;
+      b.addEventListener("click", ()=>{
+        mesCartao(y, m, true).estados[it.compra.id] = es.id;
+        salvar(); desenharCalc();
+        Array.prototype.forEach.call(seg.children, x=> x.classList.toggle("on", x === b));
+      });
+      seg.appendChild(b);
+    });
+    row.appendChild(seg);
+    c3.appendChild(row);
+  });
+  box.appendChild(c3);
+}
+
+/* ======================= APP INSTALÁVEL ======================= */
+if("serviceWorker" in navigator && location.protocol === "https:"){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+
+iniciar().catch(e=>{ console.error(e); mostrarTela("t-entrar"); $("entrar-erro").textContent = "Erro ao iniciar: " + e.message; });
+
+})();
+</script>
+</body>
+</html>
