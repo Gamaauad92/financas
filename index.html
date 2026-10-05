@@ -20,6 +20,7 @@
     --info:#2b5f86; --info-soft:#e4eef6;
     --hero-ink:#2a5c50; --hero-val:#1f4d42;
     --field:#ffffff; --del-bg:#f2e5e2;
+    --kb-bg:#e9e8e2; --kb-key:#ffffff; --kb-op:#d9d8d0; --kb-press:#c6c5bc;
     --shadow:0 1px 2px rgba(28,28,26,.04), 0 8px 24px rgba(28,28,26,.06);
     --radius:16px;
     --tabbar:64px;
@@ -35,6 +36,7 @@
       --info:#83bbe4; --info-soft:#16242e;
       --hero-ink:#8fd9c0; --hero-val:#a7e6d0;
       --field:#101514; --del-bg:#3a201c;
+      --kb-bg:#090c0b; --kb-key:#222a28; --kb-op:#161c1b; --kb-press:#36423e;
       --shadow:0 1px 2px rgba(0,0,0,.28), 0 10px 28px rgba(0,0,0,.34);
     }
   }
@@ -188,7 +190,7 @@
     position:fixed;left:0;right:0;bottom:0;z-index:51;background:var(--surface);
     border-radius:20px 20px 0 0;max-height:92vh;overflow:auto;
     padding:8px 18px calc(18px + env(safe-area-inset-bottom));
-    transform:translateY(100%);transition:transform .22s ease;
+    transform:translateY(100%);transition:transform .22s ease, bottom .18s ease, max-height .18s ease;
   }
   .folha.on{transform:none}
   .folha .puxador{width:40px;height:4px;border-radius:2px;background:var(--line-strong);margin:4px auto 10px}
@@ -242,6 +244,32 @@
     opacity:0;transition:all .2s;pointer-events:none;max-width:calc(100vw - 32px);text-align:center
   }
   #toast.on{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- teclado próprio dos campos de valor (R$) ---------- */
+  .teclado{
+    position:fixed;left:0;right:0;bottom:0;z-index:70;background:var(--kb-bg);border-top:1px solid var(--line);
+    padding:0 6px calc(8px + env(safe-area-inset-bottom));
+    transform:translateY(100%);transition:transform .18s ease;
+    touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  }
+  .teclado.on{transform:none}
+  .tec-barra{display:flex;align-items:center;gap:12px;height:40px;padding:0 6px;max-width:520px;margin:0 auto}
+  .tec-barra span{flex:1;min-width:0;font-size:.8rem;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tec-barra b{font-size:1rem;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tec-grade{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:520px;margin:0 auto}
+  .tec-grade button{
+    height:54px;border-radius:12px;background:var(--kb-key);color:var(--ink);
+    font-size:1.5rem;font-weight:500;font-variant-numeric:tabular-nums;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 1px 0 rgba(0,0,0,.14);
+  }
+  .tec-grade button.op{background:var(--kb-op);font-size:1.75rem}
+  .tec-grade button.ok{background:var(--accent);color:var(--on-accent);font-size:1.05rem;font-weight:700;letter-spacing:.03em}
+  .tec-grade button:not(.ok).press{background:var(--kb-press)}
+  .tec-grade button.ok.press{filter:brightness(.86)}
+  .tec-grade svg{width:26px;height:26px;pointer-events:none}
+  body.com-teclado .folha{bottom:var(--teclado-h,0px);max-height:calc(92vh - var(--teclado-h,0px))}
+  body.com-teclado main{padding-bottom:calc(var(--teclado-h,0px) + 24px)}
+  body.com-teclado #toast{bottom:calc(var(--teclado-h,0px) + 14px)}
 </style>
 </head>
 <body>
@@ -348,6 +376,29 @@
 <div class="veu hidden" id="veu"></div>
 <div class="folha hidden" id="folha"></div>
 <div id="toast"></div>
+
+<!-- teclado próprio dos campos de valor: sem ponto nem vírgula (os centavos entram sozinhos) -->
+<div class="teclado hidden" id="teclado">
+  <div class="tec-barra"><span id="tec-rot"></span><b id="tec-res"></b></div>
+  <div class="tec-grade">
+    <button type="button" tabindex="-1" data-k="1">1</button>
+    <button type="button" tabindex="-1" data-k="2">2</button>
+    <button type="button" tabindex="-1" data-k="3">3</button>
+    <button type="button" tabindex="-1" data-k="-" class="op" aria-label="Menos">−</button>
+    <button type="button" tabindex="-1" data-k="4">4</button>
+    <button type="button" tabindex="-1" data-k="5">5</button>
+    <button type="button" tabindex="-1" data-k="6">6</button>
+    <button type="button" tabindex="-1" data-k="+" class="op" aria-label="Mais">+</button>
+    <button type="button" tabindex="-1" data-k="7">7</button>
+    <button type="button" tabindex="-1" data-k="8">8</button>
+    <button type="button" tabindex="-1" data-k="9">9</button>
+    <button type="button" tabindex="-1" data-k="back" class="op" aria-label="Apagar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M12.5 9.5l5 5M17.5 9.5l-5 5"/></svg></button>
+    <button type="button" tabindex="-1" data-k="=" class="op" aria-label="Igual">=</button>
+    <button type="button" tabindex="-1" data-k="0">0</button>
+    <button type="button" tabindex="-1" data-k="00">00</button>
+    <button type="button" tabindex="-1" data-k="ok" class="ok">OK</button>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -1510,6 +1561,7 @@ function desenhar(){
   if(aba === "mes") desenharMes();
   else if(aba === "fluxo") desenharFluxo();
   else desenharCartao();
+  if(tec && !tec.inp.isConnected){ tec = null; tecEsconder(); }   // o campo em edição foi redesenhado
 }
 
 /* ======================= ABA: LANÇAMENTOS DO MÊS ======================= */
@@ -1629,16 +1681,286 @@ function linhaFatura(mm, y, m){
   return row;
 }
 
+/* ======================= TECLADO DE VALORES =======================
+   Os campos em R$ usam um teclado próprio no lugar do teclado do sistema:
+   algarismos, 00, =, + e −, sem ponto nem vírgula. Os centavos entram
+   sozinhos: 310052 vira 3.100,52. Cada número da conta guarda só os
+   algarismos digitados (em centavos) e o texto do campo é montado a partir
+   deles, no formato que evalExpr já entende ("=100,00+50,00").
+   O "=" no início abre uma conta, como no Excel; depois de uma conta, ele
+   mostra o resultado, como na calculadora. */
+const TEC_DIG = 12;                         // até 9.999.999.999,99 por número
+let tec = null;                             // campo ativo: {inp, t, original, alterado, sel, desde, rotulo}
+let tecTimer = null, tecNoHist = false, tecIgnorarPop = 0;
+
+const tecNum = x => typeof x === "string" && /^\d+$/.test(x);
+const tecOp  = x => x === "+" || x === "-";
+function tecCentavos(d){                    // "310052" → "3.100,52"
+  d = String(d).replace(/^0+/, "");
+  while(d.length < 3) d = "0" + d;
+  return d.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "," + d.slice(-2);
+}
+function tecTexto(t){ return t.map(x => tecNum(x) ? tecCentavos(x) : x).join(""); }
+function tecTotal(t){                       // resultado em centavos; null se não há números
+  let tot = 0, sinal = 1, algum = false;
+  t.forEach(x=>{
+    if(x === "+") sinal = 1;
+    else if(x === "-") sinal = -1;
+    else if(tecNum(x)){ tot += sinal * Number(x); sinal = 1; algum = true; }
+  });
+  return algum ? tot : null;
+}
+function tecTemConta(t){                    // há + ou − depois do primeiro número?
+  let num = false;
+  for(const x of t){ if(tecNum(x)) num = true; else if(tecOp(x) && num) return true; }
+  return false;
+}
+function tecDoCentavos(c){ return c < 0 ? ["-", String(-c)] : [String(c)]; }
+function tecDoValor(v){ return isFinite(v) ? tecDoCentavos(Math.round(v * 100)) : []; }
+/* lê um texto já gravado ("=120+35,9", "3.100,52", "3100.52"...) como teclas;
+   null quando não dá para representar sem mudar o valor (ex.: conta com × ou ÷) */
+function tecLer(txt){
+  let s = String(txt == null ? "" : txt).trim();
+  const t = [];
+  if(s.charAt(0) === "="){ t.push("="); s = s.slice(1); }
+  s = s.replace(/R\$/gi, "").replace(/\s+/g, "").replace(/−/g, "-");
+  if(!s) return t;
+  if(!/^[0-9.,+\-]+$/.test(s)) return null;
+  const virgula = s.indexOf(",") >= 0;      // mesma regra do evalExpr: com vírgula, o ponto é de milhar
+  const partes = s.split(/([+\-])/);
+  for(const p of partes){
+    if(p === "") continue;
+    const u = t[t.length - 1];
+    if(tecOp(p)){
+      if(tecOp(u) || (p === "+" && !tecNum(u))) return null;
+      t.push(p); continue;
+    }
+    const n = virgula ? p.replace(/\./g, "").replace(",", ".") : p;
+    if(!/^(\d+\.?\d*|\.\d+)$/.test(n)) return null;
+    const c = Math.round(parseFloat(n) * 100);
+    if(!isFinite(c) || String(c).length > TEC_DIG) return null;
+    t.push(String(c));
+  }
+  const total = tecTotal(t), v = evalExpr(txt);
+  if(total !== null && isFinite(v) && Math.abs(v - total / 100) > 1e-6) return null;
+  return t;
+}
+/* texto inicial de um campo, no formato do teclado (fica o original quando não dá) */
+function textoValor(raw, valor){
+  const orig = (raw !== undefined && raw !== null && String(raw).trim() !== "") ? String(raw)
+             : ((valor === null || valor === undefined) ? "" : String(Number(valor) || 0));
+  const t = tecLer(orig);
+  return t ? tecTexto(t) : orig;
+}
+function tecPintar(){
+  if(!tec) return;
+  const inp = tec.inp, txt = tecTexto(tec.t);
+  if(inp.value !== txt) inp.value = txt;
+  if(document.activeElement === inp){
+    try{ inp.setSelectionRange(tec.sel ? 0 : txt.length, txt.length); }catch(e){}
+    inp.scrollLeft = tec.sel ? 0 : inp.scrollWidth;
+  }
+  let rot = "";
+  try{ rot = tec.rotulo ? tec.rotulo() : ""; }catch(e){}
+  $("tec-rot").textContent = rot;
+  const c = tecTotal(tec.t);
+  $("tec-res").textContent = (c !== null && tecTemConta(tec.t)) ? "= " + fmt(c / 100) : "";
+}
+function tecTecla(k){
+  if(!tec) return;
+  if(!tec.inp.isConnected){ tec = null; tecEsconder(); return; }
+  if(k === "ok"){ tec.inp.blur(); return; }
+  const antes = tec.t.join(" ");
+  let t = tec.t.slice();
+  if(tec.sel){                              // valor que já estava no campo, selecionado
+    tec.sel = false;
+    if(!tecOp(k)) t = [];                   // algarismo, "=" ou apagar substituem; + e − continuam a conta
+    if(k === "back") return tecTrocar(t, antes);
+  }
+  const u = t[t.length - 1];
+  if(/^\d+$/.test(k)){                      // 0 a 9 e 00
+    if(tecNum(u)){
+      const n = (u + k).replace(/^0+(?=\d)/, "");
+      if(n.length <= TEC_DIG) t[t.length - 1] = n;
+    } else if(t.length < 41) t.push(k.replace(/^0+(?=\d)/, ""));
+  } else if(tecOp(k)){
+    if(tecNum(u)){ if(t.length < 41) t.push(k); }
+    else if(tecOp(u)){ if(tecNum(t[t.length - 2])) t[t.length - 1] = k; }   // troca a operação
+    else if(k === "-") t.push("-");                                          // número negativo
+  } else if(k === "="){
+    if(!t.length) t.push("=");                                               // começa uma conta
+    else if(tecTemConta(t)){                                                 // mostra o resultado
+      const c = tecTotal(t);
+      if(c !== null){ t = tecDoCentavos(c); tec.sel = true; }
+    }
+  } else if(k === "back"){
+    if(tecNum(u) && u.length > 1) t[t.length - 1] = u.slice(0, -1);
+    else t.pop();
+  }
+  tecTrocar(t, antes);
+}
+function tecTrocar(t, antes){
+  tec.t = t;
+  if(t.join(" ") !== antes) tec.alterado = true;
+  tecPintar();
+}
+function tecDigitar(txt){                   // teclado físico ou texto colado, caractere a caractere
+  String(txt || "").split("").forEach(ch=>{
+    if(/\d/.test(ch) || ch === "+" || ch === "=") tecTecla(ch);
+    else if(ch === "-" || ch === "−") tecTecla("-");
+  });
+}
+function tecColar(txt){
+  if(!tec) return;
+  const s = String(txt || "").trim();
+  if(!s) return;
+  const t = tecLer(s) || tecDoValor(evalExpr(s));
+  if(!t.length) return;
+  const antes = tec.t.join(" ");
+  tec.sel = false;
+  tecTrocar(t, antes);
+}
+function tecAtivar(inp, rotulo){
+  clearTimeout(tecTimer); tecTimer = null;
+  if(tec && tec.inp === inp) return;
+  if(tec) tecConcluir();
+  const original = inp.value;
+  const t = tecLer(original) || tecDoValor(evalExpr(original));
+  tec = {inp:inp, t:t, original:original, alterado:false, sel:t.length > 0, desde:Date.now(), rotulo:rotulo};
+  tecPintar();
+  setTimeout(tecPintar, 0);                 // o toque que deu o foco ainda pode mover o cursor
+  tecMostrar();
+  setTimeout(tecVerCampo, 230);
+}
+/* sai do campo: devolve o texto original se nada foi digitado; senão, tira conta pela metade */
+function tecConcluir(){
+  const c = tec; if(!c) return;
+  tec = null;
+  if(!c.alterado) c.inp.value = c.original;
+  else {
+    const t = c.t.slice();
+    while(t.length && !tecNum(t[t.length - 1])) t.pop();      // "100,00+" → "100,00"
+    c.inp.value = tecTexto(t);
+  }
+  clearTimeout(tecTimer);
+  tecTimer = setTimeout(()=>{ tecTimer = null; if(!tec) tecEsconder(); }, 40);
+}
+function tecMostrar(){
+  const k = $("teclado");
+  if(!k.classList.contains("on")){
+    k.classList.remove("hidden");
+    document.documentElement.style.setProperty("--teclado-h", k.offsetHeight + "px");
+    document.body.classList.add("com-teclado");
+    requestAnimationFrame(()=>{ if(tec) k.classList.add("on"); });
+  }
+  // o botão voltar do Android fecha o teclado, como faz com o teclado do sistema
+  if(!tecNoHist){ try{ history.pushState({fpmTeclado:true}, ""); tecNoHist = true; }catch(e){} }
+}
+function tecEsconder(){
+  const k = $("teclado");
+  k.classList.remove("on");
+  document.body.classList.remove("com-teclado");
+  setTimeout(()=>{ if(!k.classList.contains("on")) k.classList.add("hidden"); }, 220);
+  if(tecNoHist){
+    tecNoHist = false; tecIgnorarPop++;
+    try{ history.back(); }catch(e){ tecIgnorarPop--; }
+  }
+}
+window.addEventListener("popstate", ()=>{
+  if(tecIgnorarPop > 0){ tecIgnorarPop--; return; }
+  if(!tecNoHist) return;
+  tecNoHist = false;
+  if(tec) tec.inp.blur(); else tecEsconder();
+});
+window.addEventListener("resize", ()=>{
+  const k = $("teclado");
+  if(k.classList.contains("on")) document.documentElement.style.setProperty("--teclado-h", k.offsetHeight + "px");
+});
+/* mantém o campo à vista, acima do teclado */
+function tecVerCampo(){
+  if(!tec) return;
+  const inp = tec.inp, folha = inp.closest(".folha");
+  const ri = inp.getBoundingClientRect();
+  if(folha){
+    const rf = folha.getBoundingClientRect();
+    if(ri.bottom > rf.bottom - 16) folha.scrollTop += ri.bottom - rf.bottom + 24;
+    else if(ri.top < rf.top + 8) folha.scrollTop -= rf.top - ri.top + 24;
+    return;
+  }
+  const topo = document.querySelector(".topo");
+  const cima = topo ? topo.getBoundingClientRect().bottom + 8 : 8;
+  const baixo = window.innerHeight - $("teclado").offsetHeight - 16;
+  if(ri.bottom > baixo) window.scrollBy({top:ri.bottom - baixo, behavior:"smooth"});
+  else if(ri.top < cima) window.scrollBy({top:ri.top - cima, behavior:"smooth"});
+}
+/* liga um campo ao teclado; rotulo() devolve o nome mostrado na barra do teclado */
+function campoTeclado(inp, rotulo){
+  inp.setAttribute("inputmode", "none");    // não abre o teclado do sistema
+  inp.setAttribute("autocomplete", "off");
+  inp.addEventListener("focus", ()=> tecAtivar(inp, rotulo));
+  inp.addEventListener("blur", ()=>{ if(tec && tec.inp === inp) tecConcluir(); });
+  inp.addEventListener("beforeinput", e=>{  // teclado físico ou colar: passa pelas mesmas regras
+    if(!tec || tec.inp !== inp) return;
+    e.preventDefault();
+    const tipo = e.inputType || "";
+    if(tipo.indexOf("delete") === 0) tecTecla("back");
+    else if(tipo === "insertFromPaste" || tipo === "insertFromDrop")
+      tecColar(e.data || (e.dataTransfer ? e.dataTransfer.getData("text/plain") : ""));
+    else tecDigitar(e.data);
+  });
+  inp.addEventListener("input", ()=>{       // salvaguarda: se algo escrever direto no campo, relê
+    if(!tec || tec.inp !== inp || inp.value === tecTexto(tec.t)) return;
+    const antes = tec.t.join(" ");
+    tec.sel = false;
+    tecTrocar(tecLer(inp.value) || tecDoValor(evalExpr(inp.value)), antes);
+  });
+  inp.addEventListener("keydown", e=>{
+    if(e.key === "Enter" || e.key === "Escape"){ e.preventDefault(); inp.blur(); }
+  });
+  inp.addEventListener("click", ()=>{       // tocar de novo no campo tira a seleção; o cursor fica no fim
+    if(!tec || tec.inp !== inp) return;
+    if(tec.sel && Date.now() - tec.desde > 450) tec.sel = false;
+    tecPintar();
+  });
+}
+(function(){
+  const k = $("teclado");
+  // as teclas não podem tirar o foco do campo: sem isso o campo perderia o foco a cada toque
+  k.addEventListener("touchstart", e=> e.preventDefault(), {passive:false});
+  k.addEventListener("mousedown", e=> e.preventDefault());
+  let espera = null, repete = null, apertado = null;
+  const soltar = ()=>{
+    clearTimeout(espera); clearInterval(repete); espera = repete = null;
+    if(apertado){ apertado.classList.remove("press"); apertado = null; }
+  };
+  k.addEventListener("pointerdown", e=>{
+    e.preventDefault();
+    const b = e.target.closest("button[data-k]");
+    if(!b) return;
+    soltar();
+    apertado = b; b.classList.add("press");
+    try{ b.setPointerCapture(e.pointerId); }catch(_){}
+    const tecla = b.dataset.k;
+    tecTecla(tecla);
+    // segurar o apagar apaga em sequência, como no teclado do sistema
+    if(tecla === "back") espera = setTimeout(()=>{ repete = setInterval(()=> tecTecla("back"), 70); }, 420);
+  });
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach(ev => k.addEventListener(ev, soltar));
+})();
+
 /* ======================= FOLHAS (formulários) ======================= */
 function abrirFolha(html, montar){
   const f = $("folha"), v = $("veu");
+  if(tec && f.contains(tec.inp)) tec.inp.blur();
   f.innerHTML = '<div class="puxador"></div>' + html;
+  f.scrollTop = 0;                          // cada formulário abre do começo
   f.classList.remove("hidden"); v.classList.remove("hidden");
   requestAnimationFrame(()=>{ f.classList.add("on"); v.classList.add("on"); });
   if(montar) montar(f);
 }
 function fecharFolha(){
   const f = $("folha"), v = $("veu");
+  if(tec && f.contains(tec.inp)) tec.inp.blur();
   f.classList.remove("on"); v.classList.remove("on");
   setTimeout(()=>{ f.classList.add("hidden"); v.classList.add("hidden"); f.innerHTML = ""; }, 220);
 }
@@ -1685,14 +2007,14 @@ function folhaLancamento(ref){
     while(mm2 < 0){ mm2 += 12; yy--; } while(mm2 > 11){ mm2 -= 12; yy++; }
     opsMes += '<option value="' + yy + "-" + mm2 + '"' + (k === 0 ? " selected" : "") + ">" + MESES[mm2] + " " + yy + "</option>";
   }
-  const valorIni = l && (Number(l.valor) || 0) ? (l.raw || String(l.valor)).replace(".", ",") : "";
+  const valorIni = l && (Number(l.valor) || 0) ? textoValor(l.raw, l.valor) : "";
   abrirFolha(
     '<h2>' + (l ? "Editar lançamento" : "Novo lançamento") + '</h2>' +
     (l ? '<div class="sub">' + MESES[m0] + " " + y0 + (serie ? " · " + (rep === "fixa" ? "fixa" : "parcela " + l.parcela + " de " + l.parcelas) : "") + '</div>' : "") +
     segHTML("tipo", [["despesa","Despesa"],["receita","Receita"]], l ? l.tipo : "despesa") +
     '<label class="rot" for="f-valor">Valor' + (rep === "parcelada" ? " da parcela" : "") + '</label>' +
-    '<input class="campo valor" id="f-valor" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" value="' + esc(valorIni) + '">' +
-    '<div class="dica">Aceita contas, como 120+35,90.</div>' +
+    '<input class="campo valor" id="f-valor" type="text" inputmode="none" placeholder="0,00" autocomplete="off" value="' + esc(valorIni) + '">' +
+    '<div class="dica">Digite só os números: 310052 vira 3.100,52. Aceita contas com + e −.</div>' +
     '<label class="rot" for="f-desc">Descrição</label>' +
     '<input class="campo" id="f-desc" type="text" autocomplete="off" placeholder="Ex.: Mercado" value="' + esc(l ? l.desc : "") + '">' +
     '<label class="rot">Seção</label>' +
@@ -1729,7 +2051,8 @@ function folhaLancamento(ref){
       dicaRep();
       $("f-efet-rot").textContent = lerTipo() === "receita" ? "Já recebido" : "Já pago";
       $("f-cancelar").addEventListener("click", fecharFolha);
-      if(!l) setTimeout(()=> $("f-valor").focus(), 250);
+      campoTeclado($("f-valor"), ()=> document.querySelector('label[for="f-valor"]').textContent);
+      if(!l) setTimeout(()=>{ const c = $("f-valor"); if(c) c.focus(); }, 250);
       if(l) $("f-del").addEventListener("click", ()=> excluirLanc(ref));
       $("f-ok").addEventListener("click", ()=>{
         const erro = msg => { $("f-erro").textContent = msg; };
@@ -1847,8 +2170,8 @@ function folhaFatura(y, m){
   const fechada = mm.fatura.real !== null && mm.fatura.real !== undefined;
   abrirFolha('<h2>Cartão de crédito</h2><div class="sub">Fatura paga em ' + MESES[m] + " " + y + " · orçamento " + fmt(orc.valor) + "</div>" +
     '<label class="rot" for="ff-valor">Valor real da fatura</label>' +
-    '<input class="campo valor" id="ff-valor" type="text" inputmode="decimal" placeholder="' + esc(fmt(orc.valor)) + '" value="' +
-      esc(fechada ? (mm.fatura.raw || String(mm.fatura.real)).replace(".", ",") : "") + '">' +
+    '<input class="campo valor" id="ff-valor" type="text" inputmode="none" autocomplete="off" placeholder="' + esc(fmt(orc.valor)) + '" value="' +
+      esc(fechada ? textoValor(mm.fatura.raw, mm.fatura.real) : "") + '">' +
     '<div class="dica">Depois que a fatura fechar, informe o valor real. Deixe vazio para usar o orçamento.</div>' +
     '<label class="interr"><span>Já paga</span><input type="checkbox" id="ff-efet"' + (mm.fatura.efetivado ? " checked" : "") + "></label>" +
     '<label class="interr"><span>Pagamento agendado<small>vale só para este mês</small></span>' +
@@ -1858,6 +2181,7 @@ function folhaFatura(y, m){
     '<div class="erro" id="ff-erro"></div>' +
     '<div class="acoes"><button class="btn" id="ff-c">Cancelar</button><button class="btn pri" id="ff-ok">Salvar</button></div>', f=>{
       $("ff-c").addEventListener("click", fecharFolha);
+      campoTeclado($("ff-valor"), ()=> "Valor real da fatura");
       $("ff-ok").addEventListener("click", ()=>{
         const txt = $("ff-valor").value.trim();
         if(txt){
@@ -2008,12 +2332,13 @@ function desenharCalc(){
     salvar(); desenharCalc();
   });
 }
-function campoMoeda(obj, chave){
+function campoMoeda(obj, chave, rotulo){
   const inp = document.createElement("input");
-  inp.className = "moeda"; inp.type = "text"; inp.setAttribute("inputmode", "decimal");
+  inp.className = "moeda"; inp.type = "text";
   const mostra = ()=>{ const v = Number(obj[chave]) || 0; inp.value = v ? fmt(v) : ""; };
   mostra(); inp.placeholder = "R$ 0,00";
-  inp.addEventListener("focus", ()=>{ const v = Number(obj[chave]) || 0; inp.value = obj.raw ? obj.raw : (v ? String(v).replace(".", ",") : ""); setTimeout(()=> inp.select(), 0); });
+  inp.addEventListener("focus", ()=>{ const v = Number(obj[chave]) || 0; inp.value = obj.raw ? obj.raw : (v ? String(v) : ""); });
+  campoTeclado(inp, rotulo);                // depois do focus acima (lê o texto guardado) e antes do blur abaixo (grava)
   inp.addEventListener("blur", ()=>{
     const txt = inp.value.trim();
     if(!txt){ obj[chave] = 0; obj.raw = ""; salvar(); mostra(); desenharCalc(); somasCartao(); return; }
@@ -2022,7 +2347,6 @@ function campoMoeda(obj, chave){
     obj[chave] = n; obj.raw = txt;
     salvar(); mostra(); desenharCalc(); somasCartao();
   });
-  inp.addEventListener("keydown", e=>{ if(e.key === "Enter") inp.blur(); });
   return inp;
 }
 function somasCartao(){
@@ -2046,7 +2370,7 @@ function desenharListasCartao(){
     if(!mm.faturas[ct.id]) mm.faturas[ct.id] = {valor:0, raw:""};
     const row = document.createElement("div"); row.className = "campo-lin";
     const nome = document.createElement("div"); nome.className = "nome"; nome.textContent = ct.nome || "(sem nome)";
-    row.appendChild(nome); row.appendChild(campoMoeda(mm.faturas[ct.id], "valor"));
+    row.appendChild(nome); row.appendChild(campoMoeda(mm.faturas[ct.id], "valor", ()=> (ct.nome || "Cartão") + " · fatura em aberto"));
     c1.appendChild(row);
   });
   box.appendChild(c1);
@@ -2060,7 +2384,7 @@ function desenharListasCartao(){
     const d = document.createElement("input"); d.className = "txt"; d.type = "text"; d.value = it.desc || ""; d.placeholder = "Descrição";
     d.addEventListener("change", ()=>{ it.desc = d.value; salvar(); });
     row.appendChild(d);
-    const cm = campoMoeda(it, "valor"); cm.dataset.emp = it.id;
+    const cm = campoMoeda(it, "valor", ()=> (d.value || "Compra") + " · empenhado"); cm.dataset.emp = it.id;
     row.appendChild(cm);
     const x = document.createElement("button"); x.className = "x"; x.innerHTML = "&times;"; x.setAttribute("aria-label", "Excluir");
     x.addEventListener("click", ()=>{
